@@ -899,12 +899,15 @@ function submitItem(e) {
   } else {
     itemData.time = '刚刚';
     items.unshift(itemData);
+    currentCat = '全部';
+    document.getElementById('searchInput').value = '';
     showToast('🎉 宝贝发布成功！');
   }
 
   saveItems(items);
   uploadedImage = null;
   closeAddModal();
+  renderCatBar();
   renderList();
 }
 
