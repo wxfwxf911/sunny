@@ -1,1 +1,1058 @@
-Commit changes
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>☀️ 阳光二手集市</title>
+<style>
+/* ========== Reset & Base ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --orange: #FF6B35;
+  --yellow: #FFD700;
+  --pink: #FF6B8A;
+  --teal: #00D2A0;
+  --bg: #FFF8EC;
+  --card: #FFFFFF;
+  --text: #2D1B00;
+  --text-light: #7A6652;
+  --shadow: 0 4px 20px rgba(255, 107, 53, 0.12);
+  --shadow-hover: 0 12px 36px rgba(255, 107, 53, 0.22);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 10% 0%, rgba(255, 184, 77, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 100%, rgba(255, 107, 138, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255, 215, 0, 0.08) 0%, transparent 60%);
+}
+
+/* ========== Header ========== */
+.header {
+  background: linear-gradient(135deg, #FF6B35, #FF8C42, #FF6B35);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 24px rgba(255, 107, 53, 0.35);
+}
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  font-weight: 800;
+  color: #fff;
+  text-decoration: none;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  white-space: nowrap;
+}
+.logo-icon {
+  width: 44px; height: 44px;
+  background: var(--yellow);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 3px 12px rgba(255,215,0,0.5);
+}
+.search-wrap {
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+}
+.search-input {
+  width: 100%;
+  padding: 12px 48px 12px 20px;
+  border: none;
+  border-radius: 50px;
+  font-size: 15px;
+  background: rgba(255,255,255,0.95);
+  color: var(--text);
+  outline: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s;
+}
+.search-input:focus { box-shadow: 0 0 0 3px rgba(255,215,0,0.5), 0 4px 16px rgba(0,0,0,0.1); }
+.search-btn {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 36px; height: 36px;
+  border: none; background: var(--yellow);
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.search-btn:hover { transform: translateY(-50%) scale(1.08); box-shadow: 0 3px 12px rgba(255,215,0,0.5); }
+
+.btn-add {
+  padding: 12px 28px;
+  background: #fff;
+  color: var(--orange);
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  transition: transform 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+.btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+
+.btn-admin {
+  padding: 12px 20px;
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-admin:hover { background: rgba(255,255,255,0.4); }
+.btn-admin.active { background: #fff; color: var(--orange); border-color: #fff; }
+
+/* ========== Category Bar ========== */
+.cat-bar {
+  max-width: 1200px;
+  margin: 24px auto 0;
+  padding: 0 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cat-btn {
+  padding: 10px 22px;
+  border: 2px solid #e8ddd0;
+  border-radius: 50px;
+  background: #fff;
+  color: var(--text-light);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cat-btn:hover { border-color: var(--orange); color: var(--orange); }
+.cat-btn.active {
+  background: var(--orange);
+  color: #fff;
+  border-color: var(--orange);
+  box-shadow: 0 4px 14px rgba(255,107,53,0.35);
+}
+.cat-btn { position: relative; }
+.cat-del {
+  position: absolute; top: -6px; right: -6px;
+  width: 20px; height: 20px;
+  background: #f44336; color: #fff;
+  border-radius: 50%;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+}
+.cat-del:hover { background: #d32f2f; transform: scale(1.15); }
+.cat-add-wrap {
+  display: inline-flex; gap: 6px; align-items: center;
+}
+.cat-add-input {
+  width: 120px; padding: 8px 12px;
+  border: 2px dashed #e8ddd0;
+  border-radius: 50px;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+.cat-add-input:focus { border-color: var(--orange); border-style: solid; }
+.cat-add-btn {
+  padding: 8px 16px;
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.15s;
+}
+.cat-add-btn:hover { transform: scale(1.05); }
+
+/* ========== Main Grid ========== */
+.main { max-width: 1200px; margin: 0 auto; padding: 28px 20px 60px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+@media (max-width: 1000px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 680px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 440px)  { .grid { grid-template-columns: 1fr; } }
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text-light);
+}
+.empty-state .icon { font-size: 64px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 20px; margin-bottom: 8px; color: var(--text); }
+/* ========== Product Card ========== */
+.card {
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform 0.25s, box-shadow 0.25s;
+  cursor: pointer;
+  display: flex; flex-direction: column;
+}
+.card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
+
+.card-img {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  position: relative;
+  overflow: hidden;
+}
+.card-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  position: absolute; top: 0; left: 0;
+}
+.card-img .placeholder {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+.card-category {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+.card-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-price { font-size: 22px; font-weight: 800; color: var(--orange); margin-bottom: 8px; display: flex; align-items: baseline; gap: 2px; flex-wrap: wrap; }
+.card-price .unit { font-size: 14px; font-weight: 600; }
+.card-price small { color: #c98860; }
+.card-desc { font-size: 13px; color: var(--text-light); line-height: 1.5; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #b8a590; padding-top: 10px; border-top: 1px solid #f5efe6; }
+.card-footer .contact-btn {
+  padding: 6px 14px;
+  background: var(--pink);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.card-footer .contact-btn:hover { transform: scale(1.06); }
+
+/* Admin action buttons on cards */
+.card-actions {
+  position: absolute; top: 10px; left: 10px;
+  display: none; gap: 6px; z-index: 2;
+}
+.admin-mode .card-actions { display: flex; }
+.btn-edit, .btn-delete {
+  width: 32px; height: 32px;
+  border: none; border-radius: 50%;
+  font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.15s;
+}
+.btn-edit { background: #2196F3; color: #fff; }
+.btn-delete { background: #f44336; color: #fff; }
+.btn-edit:hover, .btn-delete:hover { transform: scale(1.15); }
+
+/* ========== Modal ========== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+.modal {
+  background: #fff;
+  border-radius: var(--radius);
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  animation: slideUp 0.25s;
+}
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0e8db;
+  display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; background: #fff;
+  border-radius: var(--radius) var(--radius) 0 0;
+  z-index: 1;
+}
+.modal-header h2 { font-size: 20px; }
+.modal-close {
+  width: 36px; height: 36px;
+  border: none; background: #f5efe6;
+  border-radius: 50%;
+  font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: #e8ddd0; }
+.modal-body { padding: 24px; }
+
+/* ========== Detail Modal ========== */
+.detail-img {
+  width: 100%; height: 280px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 80px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.detail-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  position: absolute; top: 0; left: 0;
+}
+.detail-price { font-size: 30px; font-weight: 800; color: var(--orange); margin-bottom: 6px; }
+.detail-meta { display: flex; gap: 16px; font-size: 13px; color: var(--text-light); margin-bottom: 16px; flex-wrap: wrap; }
+.detail-desc { font-size: 15px; line-height: 1.7; color: var(--text); margin-bottom: 20px; }
+.detail-contact {
+  padding: 16px;
+  background: #FFF7F0;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  border: 1px dashed #FFB88C;
+}
+.detail-contact .label { font-size: 13px; color: var(--text-light); margin-bottom: 4px; }
+.detail-contact .info { font-size: 18px; font-weight: 700; color: var(--orange); }
+
+/* ========== Form ========== */
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e8ddd0;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.2s;
+  outline: none;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus { border-color: var(--orange); }
+.form-group textarea { resize: vertical; min-height: 80px; }
+
+.upload-area {
+  border: 2px dashed #e8ddd0;
+  border-radius: var(--radius-sm);
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+}
+.upload-area:hover { border-color: var(--orange); background: #FFF7F0; }
+.upload-area .icon { font-size: 40px; margin-bottom: 8px; }
+.upload-area .text { font-size: 13px; color: var(--text-light); }
+.upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.upload-preview { width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius-sm); margin-top: 10px; display: none; }
+
+.btn-submit {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--orange), #FF8C42);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(255,107,53,0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(255,107,53,0.45); }
+
+.form-error { color: #e74c3c; font-size: 13px; margin-top: 4px; display: none; }
+
+/* ========== Footer ========== */
+.footer {
+  text-align: center;
+  padding: 28px 20px;
+  color: var(--text-light);
+  font-size: 13px;
+  border-top: 1px solid #f0e8db;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ========== Toast ========== */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--teal);
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 50px;
+  font-weight: 700;
+  z-index: 999;
+  box-shadow: 0 6px 24px rgba(0,210,160,0.4);
+  animation: slideUp 0.3s;
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== Header ==================== -->
+<header class="header">
+  <div class="header-inner">
+    <a href="#" class="logo" onclick="resetAll()">
+      <div class="logo-icon">☀️</div>
+      阳光二手集市
+    </a>
+    <div class="search-wrap">
+      <input class="search-input" type="text" placeholder="🔍 搜一搜你想要的好物..." id="searchInput" oninput="renderList()">
+      <button class="search-btn" onclick="renderList()">🔍</button>
+    </div>
+    <button class="btn-add" onclick="openAddModal()">+ 发布物品</button>
+    <button class="btn-admin" id="btnAdmin" onclick="toggleAdmin()">⚙️ 管理</button>
+    <button class="btn-admin" id="btnChangePwd" onclick="openChangePwdModal()" style="display:none">🔑 改密</button>
+  </div>
+</header>
+
+<!-- ==================== Category Bar ==================== -->
+<div class="cat-bar" id="catBar">
+  <!-- JS fills -->
+</div>
+
+<!-- ==================== Main Content ==================== -->
+<div class="main">
+  <div class="grid" id="grid">
+    <!-- JS fills -->
+  </div>
+</div>
+
+<!-- ==================== Footer ==================== -->
+<div class="footer">☀️ 阳光二手集市 — 让闲置焕发新生 ✨</div>
+
+<!-- ==================== Detail Modal ==================== -->
+<div class="modal-overlay" id="detailModal" style="display:none" onclick="if(event.target===this)closeDetail()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📦 物品详情</h2>
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- ==================== Add Modal ==================== -->
+<div class="modal-overlay" id="addModal" style="display:none" onclick="if(event.target===this)closeAddModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📝 发布闲置物品</h2>
+      <button class="modal-close" onclick="closeAddModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="addForm" onsubmit="submitItem(event)">
+        <div class="form-group">
+          <label>物品标题 *</label>
+          <input type="text" id="formTitle" placeholder="给物品起个名字吧" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>分类 *</label>
+          <select id="formCategory" required>
+            <option value="">请选择分类</option>
+            <option value="数码">数码</option>
+            <option value="家具">家具</option>
+            <option value="服饰">服饰</option>
+            <option value="书籍">书籍</option>
+            <option value="运动">运动</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>价格 *</label>
+          <div style="display:flex; gap:8px;">
+            <input type="number" id="formPrice" placeholder="¥ 输入价格" required min="0" max="9999999" step="0.01" style="flex:1;">
+            <input type="text" id="formUnit" placeholder="单位，如 元/件" list="unitList" style="width:140px;flex-shrink:0;" maxlength="10">
+            <datalist id="unitList">
+              <option value="元/件">
+              <option value="元/斤">
+              <option value="元/套">
+              <option value="元/本">
+              <option value="元/双">
+              <option value="元/个">
+              <option value="元/台">
+              <option value="元/张">
+              <option value="元/包">
+              <option value="元/箱">
+            </datalist>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>物品描述</label>
+          <textarea id="formDesc" placeholder="描述一下物品的成色、使用时长、购买渠道等..." maxlength="500"></textarea>
+        </div>
+        <div class="form-group">
+          <label>实物图片</label>
+          <div class="upload-area" id="uploadArea">
+            <div class="icon">📷</div>
+            <div class="text">点击此处上传图片（可选）</div>
+            <input type="file" accept="image/*" onchange="previewImage(event)">
+          </div>
+          <img class="upload-preview" id="uploadPreview">
+        </div>
+        <div class="form-group">
+          <label>联系方式 *</label>
+          <input type="text" id="formContact" placeholder="微信号 / 手机号 / QQ" required maxlength="50">
+        </div>
+        <p class="form-error" id="formError"></p>
+        <button type="submit" class="btn-submit">✨ 发布宝贝</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Change Password Modal ==================== -->
+<div class="modal-overlay" id="pwdModal" style="display:none" onclick="if(event.target===this)closePwdModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>🔑 修改管理密码</h2>
+      <button class="modal-close" onclick="closePwdModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="pwdForm" onsubmit="changePassword(event)">
+        <div class="form-group">
+          <label>当前密码</label>
+          <input type="password" id="oldPwd" placeholder="请输入当前密码" required>
+        </div>
+        <div class="form-group">
+          <label>新密码</label>
+          <input type="password" id="newPwd" placeholder="请输入新密码（至少4位）" required minlength="4">
+        </div>
+        <div class="form-group">
+          <label>确认新密码</label>
+          <input type="password" id="confirmPwd" placeholder="请再次输入新密码" required minlength="4">
+        </div>
+        <p class="form-error" id="pwdError"></p>
+        <button type="submit" class="btn-submit">✅ 确认修改</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Toast ==================== -->
+<div class="toast" id="toast" style="display:none"></div>
+
+<script>
+// ==================== DATA LAYER ====================
+const DEFAULT_CATEGORIES = ['全部', '数码', '家具', '服饰', '书籍', '运动', '其他'];
+
+function getCategories() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('sunny_categories'));
+    if (saved && Array.isArray(saved) && saved.length > 0) return saved;
+  } catch(e) {}
+  return [...DEFAULT_CATEGORIES];
+}
+function saveCategories(cats) {
+  localStorage.setItem('sunny_categories', JSON.stringify(cats));
+}
+// Seed on first visit
+if (!localStorage.getItem('sunny_categories')) {
+  saveCategories(DEFAULT_CATEGORIES);
+}
+
+const BG_GRADIENTS = [
+  'linear-gradient(135deg, #FFE0B2, #FFCC80)',
+  'linear-gradient(135deg, #FFCDD2, #EF9A9A)',
+  'linear-gradient(135deg, #C8E6C9, #A5D6A7)',
+  'linear-gradient(135deg, #BBDEFB, #90CAF9)',
+  'linear-gradient(135deg, #E1BEE7, #CE93D8)',
+  'linear-gradient(135deg, #FFE082, #FFD54F)',
+  'linear-gradient(135deg, #80DEEA, #4DD0E1)',
+  'linear-gradient(135deg, #FFAB91, #FF8A65)',
+];
+
+const EMOJIS = ['🎁', '📱', '🪑', '👗', '📚', '⚽', '🎧', '⌚', '👜', '🎮', '🏠', '🍳'];
+
+function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+const DEMO_ITEMS = [
+  { title:'iPhone 14 Pro 256GB 暗紫色', category:'数码', price:4999, unit:'元/台', desc:'自用一年，屏幕无划痕，边框轻微使用痕迹，配件齐全含原装充电器，电池健康度89%，换新机出。', contact:'WeChat: sunny_seller', time:'3 天前' },
+  { title:'九成新宜家办公椅', category:'家具', price:299, unit:'元/张', desc:'去年双11购买，坐着很舒服，腰部支撑好。因搬家换风格所以出掉，同城自提优先。', contact:'13800138000', time:'1 天前' },
+  { title:'ZARA 羊毛大衣 M码 驼色', category:'服饰', price:399, unit:'元/件', desc:'正品ZARA，穿过不到5次，干洗过一次。面料含60%羊毛，保暖性很好，版型正。', contact:'WeChat: fashion_lover', time:'今天' },
+  { title:'《三体》全套 刘慈欣 精装版', category:'书籍', price:68, unit:'元/套', desc:'买了看完一遍，几乎全新无折痕。精装硬壳版，三本齐全，科幻迷必入。', contact:'QQ: 12345678', time:'5 天前' },
+  { title:'Keep 智能跳绳 蓝牙版', category:'运动', price:79, unit:'元/个', desc:'买来跳了不到一个月就闲置了，功能完好，APP数据同步正常，送替换绳。', contact:'WeChat: keep_jump', time:'2 天前' },
+  { title:'索尼 WH-1000XM4 降噪耳机', category:'数码', price:899, unit:'元/台', desc:'黑色，95新，降噪效果一流。出差用了几次，耳罩无磨损，箱说齐全。', contact:'13912345678', time:'1 周前' },
+  { title:'MUJI 懒人沙发 豆袋', category:'家具', price:180, unit:'元/个', desc:'买来放在阳台用，基本没怎么坐。豆袋填充饱满不变形，外套可拆洗。', contact:'WeChat: home_life', time:'4 天前' },
+  { title:'Nike Air Max 270 跑鞋 42码', category:'运动', price:259, unit:'元/双', desc:'专柜购入，正品保证。只穿了两次跑步，鞋底几乎无磨损，码数买小了不合适。', contact:'13898765432', time:'3 天前' },
+];
+
+function getItems() {
+  try { return JSON.parse(localStorage.getItem('sunny_items')) || [...DEMO_ITEMS]; }
+  catch(e) { return [...DEMO_ITEMS]; }
+}
+function saveItems(items) { localStorage.setItem('sunny_items', JSON.stringify(items)); }
+
+// Seed localStorage with demo data on first visit
+if (!localStorage.getItem('sunny_items')) {
+  saveItems(DEMO_ITEMS);
+}
+
+let currentCat = '全部';
+let items = getItems();
+
+// ==================== RENDER ====================
+function renderCatBar() {
+  const cats = getCategories();
+  let html = cats.map(c =>
+    `<button class="cat-btn${c===currentCat?' active':''}" onclick="selectCat('${c}')">
+      ${c}
+      ${adminMode && c!=='全部' ? `<span class="cat-del" onclick="event.stopPropagation();deleteCategory('${c}')" title="删除分类">×</span>` : ''}
+    </button>`
+  ).join('');
+  if (adminMode) {
+    html += `<span class="cat-add-wrap">
+      <input class="cat-add-input" id="newCatInput" placeholder="新分类名称">
+      <button class="cat-add-btn" onclick="addCategory()">+添加</button>
+    </span>`;
+  }
+  document.getElementById('catBar').innerHTML = html;
+}
+
+function getBgStyle(item, idx) {
+  if (item.image) return `background-image:url(${item.image});background-size:cover;background-position:center;`;
+  return `background:${BG_GRADIENTS[idx % BG_GRADIENTS.length]};`;
+}
+
+function getPlaceholder(item, idx) {
+  if (item.image) return '';
+  const emoji = (item.category==='数码')?'📱':(item.category==='家具')?'🪑':(item.category==='服饰')?'👗':(item.category==='书籍')?'📚':(item.category==='运动')?'⚽':rand(EMOJIS);
+  return `<div class="placeholder">${emoji}</div>`;
+}
+
+function renderList() {
+  const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+  let filtered = items;
+  if (currentCat !== '全部') filtered = filtered.filter(i => i.category === currentCat);
+  if (searchTerm) filtered = filtered.filter(i =>
+    i.title.toLowerCase().includes(searchTerm) ||
+    (i.desc||'').toLowerCase().includes(searchTerm) ||
+    i.category.toLowerCase().includes(searchTerm)
+  );
+
+  const grid = document.getElementById('grid');
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📭</div>
+        <h3>暂时没有找到相关物品</h3>
+        <p>换个关键词试试，或者去发布一件闲置吧~</p>
+      </div>`;
+    return;
+  }
+  grid.innerHTML = filtered.map((item, idx) => {
+    const bg = getBgStyle(item, idx);
+    const ph = getPlaceholder(item, idx);
+    const catColor = item.category==='数码'?'#FF6B35':item.category==='家具'?'#4CAF50':item.category==='服饰'?'#E91E63':item.category==='书籍'?'#2196F3':item.category==='运动'?'#FF9800':'#9E9E9E';
+    return `
+    <div class="card" onclick="openDetail('${idx}')" data-idx="${idx}">
+      <div class="card-img" style="${bg}">
+        <div class="card-actions">
+          <button class="btn-edit" onclick="event.stopPropagation();editItem('${idx}')" title="编辑">✎</button>
+          <button class="btn-delete" onclick="event.stopPropagation();deleteItem('${idx}')" title="删除">✕</button>
+        </div>
+        ${ph}
+        <span class="card-category" style="background:${catColor}">${item.category}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${escapeHtml(item.title)}</div>
+        <div class="card-price"><span class="unit">¥</span>${item.price.toFixed(2)}${item.unit ? ` <small style="font-size:13px;font-weight:500">${escapeHtml(item.unit)}</small>` : ''}</div>
+        <div class="card-desc">${escapeHtml(item.desc||'暂无描述')}</div>
+        <div class="card-footer">
+          <span>🕐 ${item.time||'刚刚'}</span>
+          <button class="contact-btn" onclick="event.stopPropagation();quickContact('${escapeHtml(item.contact||'')}')">联系卖家</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function selectCat(cat) {
+  currentCat = cat;
+  renderCatBar();
+  renderList();
+}
+
+function updateCategorySelect() {
+  const cats = getCategories();
+  const sel = document.getElementById('formCategory');
+  const val = sel.value;
+  sel.innerHTML = '<option value="">请选择分类</option>' +
+    cats.filter(c => c !== '全部').map(c => `<option value="${c}">${c}</option>`).join('');
+  sel.value = val;
+}
+
+function addCategory() {
+  const input = document.getElementById('newCatInput');
+  const name = input.value.trim();
+  if (!name) { showToast('请输入分类名称'); return; }
+  if (name === '全部') { showToast('「全部」为系统保留分类，不能添加'); return; }
+  const cats = getCategories();
+  if (cats.includes(name)) { showToast('该分类已存在'); return; }
+  cats.push(name);
+  saveCategories(cats);
+  input.value = '';
+  updateCategorySelect();
+  renderCatBar();
+  showToast('✅ 分类「' + name + '」已添加');
+}
+
+function deleteCategory(catName) {
+  if (catName === '全部') { showToast('「全部」为系统保留分类，不能删除'); return; }
+  // Check if any items use this category
+  const hasItems = items.some(i => i.category === catName);
+  const msg = hasItems
+    ? `分类「${catName}」下有物品，删除后这些物品的分类将变为「其他」。确定删除吗？`
+    : `确定删除分类「${catName}」吗？`;
+  if (!confirm(msg)) return;
+  // Move items to "其他" or remove category reference
+  if (hasItems) {
+    items.forEach(i => { if (i.category === catName) i.category = '其他'; });
+    saveItems(items);
+  }
+  let cats = getCategories();
+  cats = cats.filter(c => c !== catName);
+  saveCategories(cats);
+  if (currentCat === catName) currentCat = '全部';
+  updateCategorySelect();
+  renderCatBar();
+  renderList();
+  showToast('🗑️ 分类「' + catName + '」已删除');
+}
+
+function resetAll() {
+  currentCat = '全部';
+  document.getElementById('searchInput').value = '';
+  items = getItems();
+  renderCatBar();
+  renderList();
+}
+
+// ==================== DETAIL MODAL ====================
+function openDetail(globalIdx) {
+  const filtered = getFilteredItems();
+  const item = filtered[globalIdx];
+  if (!item) return;
+  const bg = item.image ? `background-image:url(${item.image});background-size:cover;background-position:center;` : `background:${BG_GRADIENTS[globalIdx % BG_GRADIENTS.length]};`;
+  const ph = item.image ? '' : `<div class="placeholder" style="font-size:80px">${rand(EMOJIS)}</div>`;
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-img" style="${bg}">${ph}</div>
+    <div class="detail-price">¥ ${item.price.toFixed(2)}${item.unit ? ` <small style="font-size:16px;font-weight:500">${escapeHtml(item.unit)}</small>` : ''}</div>
+    <div class="detail-meta">
+      <span>📂 ${item.category}</span>
+      <span>🕐 ${item.time||'刚刚'}</span>
+    </div>
+    <h3 style="margin-bottom:8px">${escapeHtml(item.title)}</h3>
+    <div class="detail-desc">${escapeHtml(item.desc||'卖家没有留下描述~')}</div>
+    <div class="detail-contact">
+      <div class="label">📞 联系方式</div>
+      <div class="info">${escapeHtml(item.contact||'未填写')}</div>
+    </div>
+  `;
+  document.getElementById('detailModal').style.display = 'flex';
+}
+
+function closeDetail() {
+  document.getElementById('detailModal').style.display = 'none';
+}
+
+function getFilteredItems() {
+  const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+  let filtered = items;
+  if (currentCat !== '全部') filtered = filtered.filter(i => i.category === currentCat);
+  if (searchTerm) filtered = filtered.filter(i =>
+    i.title.toLowerCase().includes(searchTerm) ||
+    (i.desc||'').toLowerCase().includes(searchTerm) ||
+    i.category.toLowerCase().includes(searchTerm)
+  );
+  return filtered;
+}
+
+function quickContact(contact) {
+  if (!contact) { showToast('卖家未填写联系方式 😢'); return; }
+  showToast('📞 联系方式：' + contact);
+}
+
+// ==================== ADD MODAL ====================
+function openAddModal() {
+  document.getElementById('addModal').style.display = 'flex';
+  updateCategorySelect();
+  document.getElementById('addForm').reset();
+  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById('formError').style.display = 'none';
+}
+
+function closeAddModal() {
+  document.getElementById('addModal').style.display = 'none';
+  const form = document.getElementById('addForm');
+  form.reset();
+  delete form.dataset.editing;
+  document.querySelector('#addModal .modal-header h2').textContent = '📝 发布闲置物品';
+  document.querySelector('#addModal .btn-submit').textContent = '✨ 发布宝贝';
+  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById('formError').style.display = 'none';
+}
+
+let uploadedImage = null;
+function previewImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    uploadedImage = e.target.result;
+    const preview = document.getElementById('uploadPreview');
+    preview.src = uploadedImage;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function submitItem(e) {
+  e.preventDefault();
+  const title = document.getElementById('formTitle').value.trim();
+  const category = document.getElementById('formCategory').value;
+  const price = parseFloat(document.getElementById('formPrice').value);
+  const unit = document.getElementById('formUnit').value.trim();
+  const desc = document.getElementById('formDesc').value.trim();
+  const contact = document.getElementById('formContact').value.trim();
+  const errEl = document.getElementById('formError');
+  const form = document.getElementById('addForm');
+  const editingIdx = form.dataset.editing;
+
+  if (!title || !category || isNaN(price) || price < 0 || !contact) {
+    errEl.textContent = '请填写所有必填项（标题、分类、价格、联系方式）';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const itemData = {
+    title,
+    category,
+    price,
+    unit,
+    desc,
+    contact,
+    image: uploadedImage || null,
+  };
+
+  if (editingIdx !== undefined && editingIdx !== '') {
+    itemData.time = items[parseInt(editingIdx)].time || '已编辑';
+    items[parseInt(editingIdx)] = itemData;
+    showToast('✅ 物品已更新');
+  } else {
+    itemData.time = '刚刚';
+    items.unshift(itemData);
+    currentCat = '全部';
+    document.getElementById('searchInput').value = '';
+    showToast('🎉 宝贝发布成功！');
+  }
+
+  saveItems(items);
+  uploadedImage = null;
+  closeAddModal();
+  renderCatBar();
+  renderList();
+}
+
+// ==================== TOAST ====================
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  toast.style.animation = 'none';
+  toast.offsetHeight; // reflow
+  toast.style.animation = 'slideUp 0.3s';
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => { toast.style.display = 'none'; }, 2500);
+}
+
+// ==================== ADMIN ====================
+let adminMode = false;
+const DEFAULT_PASSWORD = 'admin123';
+function getAdminPassword() {
+  return localStorage.getItem('sunny_admin_pwd') || DEFAULT_PASSWORD;
+}
+function setAdminPassword(newPwd) {
+  localStorage.setItem('sunny_admin_pwd', newPwd);
+}
+
+function toggleAdmin() {
+  if (adminMode) {
+    adminMode = false;
+    document.getElementById('btnAdmin').classList.remove('active');
+    document.getElementById('btnAdmin').textContent = '⚙️ 管理';
+    document.getElementById('btnChangePwd').style.display = 'none';
+    document.body.classList.remove('admin-mode');
+    renderList();
+    showToast('已退出管理模式');
+    return;
+  }
+  const pw = prompt('请输入管理密码：');
+  if (pw === null) return;
+  if (pw !== getAdminPassword()) {
+    alert('密码错误！');
+    return;
+  }
+  adminMode = true;
+  document.getElementById('btnAdmin').classList.add('active');
+  document.getElementById('btnAdmin').textContent = '⚙️ 管理中...';
+  document.getElementById('btnChangePwd').style.display = '';
+  document.body.classList.add('admin-mode');
+  renderList();
+  showToast('🔧 已进入管理模式，可编辑/删除物品');
+}
+
+function openChangePwdModal() {
+  document.getElementById('pwdModal').style.display = 'flex';
+  document.getElementById('pwdForm').reset();
+  document.getElementById('pwdError').style.display = 'none';
+}
+
+function closePwdModal() {
+  document.getElementById('pwdModal').style.display = 'none';
+}
+
+function changePassword(e) {
+  e.preventDefault();
+  const oldPwd = document.getElementById('oldPwd').value;
+  const newPwd = document.getElementById('newPwd').value.trim();
+  const confirmPwd = document.getElementById('confirmPwd').value.trim();
+  const errEl = document.getElementById('pwdError');
+
+  if (oldPwd !== getAdminPassword()) {
+    errEl.textContent = '当前密码不正确';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (newPwd.length < 4) {
+    errEl.textContent = '新密码至少需要4位';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (newPwd !== confirmPwd) {
+    errEl.textContent = '两次输入的新密码不一致';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  setAdminPassword(newPwd);
+  closePwdModal();
+  showToast('🔑 密码修改成功！');
+}
+
+function deleteItem(filteredIdx) {
+  const filtered = getFilteredItems();
+  const targetItem = filtered[filteredIdx];
+  if (!targetItem) return;
+  if (!confirm(`确定要删除「${targetItem.title}」吗？此操作不可恢复。`)) return;
+  // Find and remove from the master items array
+  const masterIdx = items.findIndex(i =>
+    i.title === targetItem.title &&
+    i.price === targetItem.price &&
+    i.time === targetItem.time
+  );
+  if (masterIdx !== -1) items.splice(masterIdx, 1);
+  saveItems(items);
+  renderList();
+  showToast('🗑️ 物品已删除');
+}
+
+function editItem(filteredIdx) {
+  const filtered = getFilteredItems();
+  const targetItem = filtered[filteredIdx];
+  if (!targetItem) return;
+  // Find in master array
+  const masterIdx = items.findIndex(i =>
+    i.title === targetItem.title &&
+    i.price === targetItem.price &&
+    i.time === targetItem.time
+  );
+  // Open add modal and pre-fill
+  document.getElementById('addModal').style.display = 'flex';
+  updateCategorySelect();
+  document.getElementById('formTitle').value = targetItem.title;
+  document.getElementById('formCategory').value = targetItem.category;
+  document.getElementById('formPrice').value = targetItem.price;
+  document.getElementById('formUnit').value = targetItem.unit || '';
+  document.getElementById('formDesc').value = targetItem.desc || '';
+  document.getElementById('formContact').value = targetItem.contact || '';
+  document.getElementById('formError').style.display = 'none';
+  // Handle image
+  uploadedImage = targetItem.image || null;
+  const preview = document.getElementById('uploadPreview');
+  if (uploadedImage) {
+    preview.src = uploadedImage;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+  // Change form to edit mode
+  const form = document.getElementById('addForm');
+  form.dataset.editing = masterIdx;
+  document.querySelector('#addModal .modal-header h2').textContent = '✏️ 编辑物品';
+  document.querySelector('#addModal .btn-submit').textContent = '💾 保存修改';
+}
+
+// ==================== INIT ====================
+renderCatBar();
+renderList();
+</script>
+</body>
+</html>
