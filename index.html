@@ -713,7 +713,7 @@ const EMOJIS = ['🎁', '📱', '🪑', '👗', '📚', '⚽', '🎧', '⌚', '�
 function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 const DEMO_ITEMS = [
-  { title:'拼接屏', category:'音响', price:1680, unit:'元/套', desc:'2X2 单屏48寸共四块，七成新，画质清晰特别适用于酒吧，KTV', contact:'13882591912', time:'今天' },
+  { title:'拼接屏', category:'音响', price:1680, unit:'元人民币/台', desc:'2X2 共四块屏，单屏48寸，七成新，画质清晰特别适合酒吧，KTV，会议室使用', contact:'13882591912', time:'今天' },
   { title:'iPhone 14 Pro 256GB 暗紫色', category:'数码', price:4999, unit:'元/台', desc:'自用一年，屏幕无划痕，边框轻微使用痕迹，配件齐全含原装充电器，电池健康度89%，换新机出。', contact:'WeChat: sunny_seller', time:'3 天前' },
   { title:'九成新宜家办公椅', category:'家具', price:299, unit:'元/张', desc:'去年双11购买，坐着很舒服，腰部支撑好。因搬家换风格所以出掉，同城自提优先。', contact:'13800138000', time:'1 天前' },
   { title:'ZARA 羊毛大衣 M码 驼色', category:'服饰', price:399, unit:'元/件', desc:'正品ZARA，穿过不到5次，干洗过一次。面料含60%羊毛，保暖性很好，版型正。', contact:'WeChat: fashion_lover', time:'今天' },
@@ -725,7 +725,7 @@ const DEMO_ITEMS = [
 ];
 
 // 数据版本号 — 每次更新 DEMO_ITEMS 时 +1
-const DATA_VERSION = 2;
+const DATA_VERSION = 3;
 
 function upgradeData() {
   const savedVer = parseInt(localStorage.getItem('sunny_data_ver')) || 0;
