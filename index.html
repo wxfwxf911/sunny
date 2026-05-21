@@ -714,7 +714,7 @@ const DEMO_ITEMS = [
 ];
 
 // 数据版本号 — 每次更新 DEMO_ITEMS 时 +1
-const DATA_VERSION = 6;
+const DATA_VERSION = 7;
 
 function upgradeData() {
   const savedVer = parseInt(localStorage.getItem('sunny_data_ver')) || 0;
@@ -738,6 +738,14 @@ function upgradeData() {
     const keepKeys = DEMO_ITEMS.map(d => d.title + '|' + d.price);
     const cleaned = existing.filter(e => !removedKeys.includes(e.title + '|' + e.price) || keepKeys.includes(e.title + '|' + e.price));
     saveItemsRaw(cleaned);
+  }
+
+  // v7: 清理已移除的默认分类
+  if (savedVer < 7) {
+    const removedCats = ['服饰', '书籍', '运动'];
+    let savedCats = getCategoriesRaw();
+    savedCats = savedCats.filter(c => !removedCats.includes(c));
+    saveCategoriesRaw(savedCats);
   }
 
   // 合并新分类
