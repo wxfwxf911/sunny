@@ -539,7 +539,7 @@ body {
 </div>
 
 <!-- ==================== Footer ==================== -->
-<div class="footer">☀️ 阳光二手集市 — 让闲置焕发新生 ✨ &nbsp; <span style="color:#ccc;font-size:11px">v2.2</span></div>
+<div class="footer">☀️ 阳光二手集市 — 让闲置焕发新生 ✨ &nbsp; <span style="color:#ccc;font-size:11px">v2.3</span></div>
 
 <!-- ==================== Detail Modal ==================== -->
 <div class="modal-overlay" id="detailModal" style="display:none" onclick="if(event.target===this)closeDetail()">
@@ -678,11 +678,25 @@ const DEFAULT_CATEGORIES = ['全部', '数码', '家具', '音响', '其他'];
 async function loadServerData() {
   try {
     const resp = await fetch("data.json?t=" + Date.now());
-    SERVER_ITEMS = await resp.json();
+    const data = await resp.json();
+    // v2.2+: data.json 格式为 {version, items}
+    const serverVer = data.version || 0;
+    SERVER_ITEMS = data.items || data; // 兼容旧格式
+    const localVer = parseInt(localStorage.getItem('sunny_server_ver')) || 0;
+    
+    if (serverVer > localVer) {
+      // 服务器有更新，清除本地缓存，保留标记了 _local 的物品
+      const localItems = getItemsRaw();
+      const keepItems = localItems.filter(i => i._local === true);
+      console.log("🔄 服务器数据已更新(v" + serverVer + ")，保留本地未同步物品: " + keepItems.length + " 件");
+      saveItemsRaw([...SERVER_ITEMS, ...keepItems]);
+      localStorage.setItem('sunny_server_ver', serverVer);
+    }
+    
     mergeServerItems();
     renderCatBar();
     renderList();
-    console.log("✅ 已加载服务器数据: " + SERVER_ITEMS.length + " 件");
+    console.log("✅ 服务器数据 v" + serverVer + ": " + SERVER_ITEMS.length + " 件");
   } catch(e) {
     console.warn("加载服务器数据失败，使用本地缓存:", e.message);
   }
@@ -691,7 +705,7 @@ async function loadServerData() {
 function mergeServerItems() {
   const local = getItemsRaw();
   const merged = [...SERVER_ITEMS];
-  // 合并本地独有项（用户在管理面板添加的）
+  // 合并本地独有项（用户添加、尚未同步的）
   local.forEach(localItem => {
     const existsInServer = SERVER_ITEMS.some(s => s.title === localItem.title && s.price === localItem.price);
     if (!existsInServer) merged.unshift(localItem);
@@ -1067,9 +1081,11 @@ function submitItem(e) {
 
   if (editingIdx !== undefined && editingIdx !== '') {
     itemData.time = items[parseInt(editingIdx)].time || '已编辑';
+    itemData._local = items[parseInt(editingIdx)]._local; // 保持原标记
     items[parseInt(editingIdx)] = itemData;
   } else {
     itemData.time = '刚刚';
+    itemData._local = true; // 标记为本地新增，同步前不清除
     items.unshift(itemData);
     currentCat = '全部';
     document.getElementById('searchInput').value = '';
@@ -1131,15 +1147,22 @@ async function syncToGitHub() {
   };
 
   try {
-    // 1. 获取当前 data.json 的 SHA
+    // 1. 获取当前 data.json 的 SHA + 版本号
     const getResp = await fetch(API + '/repos/' + repo + '/contents/' + path, { headers });
     if (!getResp.ok) throw new Error('获取文件信息失败');
     const fileData = await getResp.json();
     const sha = fileData.sha;
+    // 解析当前版本号
+    let currentVer = 1;
+    try {
+      const currentContent = JSON.parse(atob(fileData.content));
+      currentVer = currentContent.version || 1;
+    } catch(e) {}
 
-    // 2. 准备新内容
-    const allItems = getItemsRaw();
-    const jsonStr = JSON.stringify(allItems, null, 2);
+    // 2. 准备新内容 — 去掉 _local 标记，版本号 +1
+    const allItems = getItemsRaw().map(i => { const {_local, ...clean} = i; return clean; });
+    const newData = { version: currentVer + 1, items: allItems };
+    const jsonStr = JSON.stringify(newData, null, 2);
     const content = btoa(unescape(encodeURIComponent(jsonStr)));
 
     // 3. 更新文件
@@ -1147,12 +1170,16 @@ async function syncToGitHub() {
       method: 'PUT',
       headers,
       body: JSON.stringify({
-        message: '🔄 自动同步商品数据 (' + allItems.length + '件)',
+        message: '🔄 自动同步 (v' + (currentVer + 1) + ', ' + allItems.length + '件)',
         content: content,
         sha: sha
       })
     });
     if (!putResp.ok) throw new Error('提交失败');
+
+    // 4. 同步成功后：更新本地版本号，去掉所有 _local 标记
+    localStorage.setItem('sunny_server_ver', currentVer + 1);
+    saveItemsRaw(allItems);
     return true;
   } catch(e) {
     console.error('GitHub 同步失败:', e.message);
