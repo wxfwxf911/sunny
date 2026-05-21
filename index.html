@@ -1015,7 +1015,7 @@ function previewImage(event) {
     // 自动压缩图片，避免 localStorage 超限
     const img = new Image();
     img.onload = function() {
-      const maxW = 800, maxH = 800;
+      const maxW = 500, maxH = 500;
       let w = img.width, h = img.height;
       if (w > maxW || h > maxH) {
         const ratio = Math.min(maxW / w, maxH / h);
@@ -1026,7 +1026,7 @@ function previewImage(event) {
       canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, w, h);
-      uploadedImage = canvas.toDataURL('image/jpeg', 0.7);
+      uploadedImage = canvas.toDataURL('image/jpeg', 0.5);
       const preview = document.getElementById('uploadPreview');
       preview.src = uploadedImage;
       document.getElementById('uploadPreviewWrap').style.display = 'block';
