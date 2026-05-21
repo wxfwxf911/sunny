@@ -520,6 +520,8 @@ body {
     <button class="btn-admin" id="btnAdmin" onclick="toggleAdmin()">⚙️ 管理</button>
     <button class="btn-admin" id="btnChangePwd" onclick="openChangePwdModal()" style="display:none">🔑 改密</button>
     <button class="btn-admin" id="btnExport" onclick="exportUserItems()" style="display:none">💾 导出</button>
+    <button class="btn-admin" id="btnToken" onclick="setupToken()" style="display:none">🔐 设置Token</button>
+    <span id="syncStatus" style="display:none;color:#fff;font-size:12px;font-weight:600"></span>
     <button class="btn-share" onclick="openShareModal()">📤 分享</button>
   </div>
 </header>
@@ -537,7 +539,7 @@ body {
 </div>
 
 <!-- ==================== Footer ==================== -->
-<div class="footer">☀️ 阳光二手集市 — 让闲置焕发新生 ✨ &nbsp; <span style="color:#ccc;font-size:11px">v2.1</span> &nbsp; <span style="color:#FF6B35;font-size:11px">💾发布后点导出同步</span></div>
+<div class="footer">☀️ 阳光二手集市 — 让闲置焕发新生 ✨ &nbsp; <span style="color:#ccc;font-size:11px">v2.2</span></div>
 
 <!-- ==================== Detail Modal ==================== -->
 <div class="modal-overlay" id="detailModal" style="display:none" onclick="if(event.target===this)closeDetail()">
@@ -1075,6 +1077,13 @@ function submitItem(e) {
 
   if (saveItems(items)) {
     showToast(editingIdx !== undefined && editingIdx !== '' ? '✅ 物品已更新' : '🎉 宝贝发布成功！');
+    // 自动同步到 GitHub
+    if (hasGithubToken()) {
+      syncToGitHub().then(ok => {
+        if (ok) showToast('🚀 已自动同步到服务器！');
+        else showToast('⚠️ 本地已保存，但服务器同步失败');
+      });
+    }
   } else {
     showToast('⚠️ 存储空间不足，数据无法保存，请清理浏览器数据');
   }
@@ -1084,6 +1093,92 @@ function submitItem(e) {
   closeAddModal();
   renderCatBar();
   renderList();
+}
+
+// ==================== GITHUB AUTO SYNC ====================
+function getGithubToken() {
+  return localStorage.getItem('sunny_github_token') || '';
+}
+
+function hasGithubToken() {
+  return !!getGithubToken();
+}
+
+function setupToken() {
+  const current = getGithubToken();
+  const token = prompt('请输入 GitHub Personal Access Token（需 repo 权限）：\n\n当前 Token：' + (current ? '已设置 ✅' : '未设置 ❌'), current);
+  if (token === null) return;
+  if (!token.trim()) {
+    showToast('⚠️ Token 不能为空');
+    return;
+  }
+  localStorage.setItem('sunny_github_token', token.trim());
+  updateSyncStatus();
+  showToast('🔐 Token 已保存！发布物品将自动同步到服务器');
+}
+
+async function syncToGitHub() {
+  const token = getGithubToken();
+  if (!token) return false;
+
+  const API = 'https://api.github.com';
+  const repo = 'wxfwxf911/sunny';
+  const path = 'data.json';
+  const headers = {
+    'Authorization': 'token ' + token,
+    'Content-Type': 'application/json',
+    'Accept': 'application/vnd.github.v3+json'
+  };
+
+  try {
+    // 1. 获取当前 data.json 的 SHA
+    const getResp = await fetch(API + '/repos/' + repo + '/contents/' + path, { headers });
+    if (!getResp.ok) throw new Error('获取文件信息失败');
+    const fileData = await getResp.json();
+    const sha = fileData.sha;
+
+    // 2. 准备新内容
+    const allItems = getItemsRaw();
+    const jsonStr = JSON.stringify(allItems, null, 2);
+    const content = btoa(unescape(encodeURIComponent(jsonStr)));
+
+    // 3. 更新文件
+    const putResp = await fetch(API + '/repos/' + repo + '/contents/' + path, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        message: '🔄 自动同步商品数据 (' + allItems.length + '件)',
+        content: content,
+        sha: sha
+      })
+    });
+    if (!putResp.ok) throw new Error('提交失败');
+    return true;
+  } catch(e) {
+    console.error('GitHub 同步失败:', e.message);
+    return false;
+  }
+}
+
+function updateSyncStatus() {
+  const span = document.getElementById('syncStatus');
+  const btnToken = document.getElementById('btnToken');
+  if (adminMode) {
+    span.style.display = '';
+    btnToken.style.display = '';
+    if (hasGithubToken()) {
+      span.textContent = '🟢 自动同步已开启';
+      span.style.color = '#90EE90';
+      btnToken.textContent = '🔐 更新Token';
+    } else {
+      span.textContent = '🔴 未设置Token';
+      span.style.color = '#FFB88C';
+      btnToken.textContent = '🔐 设置Token';
+    }
+  } else {
+    span.style.display = 'none';
+    btnToken.style.display = 'none';
+  }
 }
 
 // ==================== TOAST ====================
@@ -1131,6 +1226,7 @@ function toggleAdmin() {
   document.getElementById('btnAdmin').textContent = '⚙️ 管理中...';
   document.getElementById('btnChangePwd').style.display = '';
   document.getElementById('btnExport').style.display = '';
+  updateSyncStatus();
   document.body.classList.add('admin-mode');
   renderList();
   showToast('🔧 已进入管理模式，可编辑/删除物品');
@@ -1213,6 +1309,7 @@ function deleteItem(filteredIdx) {
   saveItems(items);
   renderList();
   showToast('🗑️ 物品已删除');
+  if (hasGithubToken()) syncToGitHub().then(ok => { if (!ok) showToast('⚠️ 服务器同步失败'); });
 }
 
 function editItem(filteredIdx) {
