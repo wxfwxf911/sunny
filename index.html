@@ -456,6 +456,10 @@ body {
 .upload-area .text { font-size: 13px; color: var(--text-light); }
 .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .upload-preview { width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius-sm); margin-top: 10px; display: none; }
+.upload-preview-wrap { position: relative; margin-top: 10px; display: none; }
+.upload-preview-wrap .upload-preview { width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius-sm); margin-top: 0; display: block; }
+.btn-remove-img { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(0,0,0,0.55); color: #fff; font-size: 16px; cursor: pointer; line-height: 28px; text-align: center; padding: 0; z-index: 1; }
+.btn-remove-img:hover { background: rgba(255,0,0,0.7); }
 
 .btn-submit {
   width: 100%;
@@ -601,7 +605,7 @@ body {
             <div class="text">点击此处上传图片（可选）</div>
             <input type="file" accept="image/*" onchange="previewImage(event)">
           </div>
-          <img class="upload-preview" id="uploadPreview">
+          <div class="upload-preview-wrap" id="uploadPreviewWrap"><img class="upload-preview" id="uploadPreview"><button type="button" class="btn-remove-img" onclick="removeImage()" title="删除图片">✕</button></div>
         </div>
         <div class="form-group">
           <label>联系方式 *</label>
@@ -980,7 +984,7 @@ function openAddModal() {
   document.getElementById('addModal').style.display = 'flex';
   updateCategorySelect();
   document.getElementById('addForm').reset();
-  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById("uploadPreviewWrap").style.display = 'none';
   document.getElementById('formError').style.display = 'none';
 }
 
@@ -991,11 +995,18 @@ function closeAddModal() {
   delete form.dataset.editing;
   document.querySelector('#addModal .modal-header h2').textContent = '📝 发布闲置物品';
   document.querySelector('#addModal .btn-submit').textContent = '✨ 发布宝贝';
-  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById("uploadPreviewWrap").style.display = 'none';
   document.getElementById('formError').style.display = 'none';
 }
 
 let uploadedImage = null;
+function removeImage() {
+  uploadedImage = null;
+  document.getElementById("uploadPreview").src = "";
+  document.getElementById("uploadPreviewWrap").style.display = "none";
+  var fi = document.querySelector("#uploadArea input[type=file]");
+  fi.value = "";
+}
 function previewImage(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -1018,7 +1029,7 @@ function previewImage(event) {
       uploadedImage = canvas.toDataURL('image/jpeg', 0.7);
       const preview = document.getElementById('uploadPreview');
       preview.src = uploadedImage;
-      preview.style.display = 'block';
+      document.getElementById('uploadPreviewWrap').style.display = 'block';
     };
     img.src = e.target.result;
   };
@@ -1224,9 +1235,9 @@ function editItem(filteredIdx) {
   const preview = document.getElementById('uploadPreview');
   if (uploadedImage) {
     preview.src = uploadedImage;
-    preview.style.display = 'block';
+    document.getElementById('uploadPreviewWrap').style.display = 'block';
   } else {
-    preview.style.display = 'none';
+    document.getElementById('uploadPreviewWrap').style.display = 'none';
   }
   // Change form to edit mode
   const form = document.getElementById('addForm');
