@@ -725,16 +725,19 @@ const DEMO_ITEMS = [
 ];
 
 // 数据版本号 — 每次更新 DEMO_ITEMS 时 +1
-const DATA_VERSION = 4;
+const DATA_VERSION = 5;
 
 function upgradeData() {
   const savedVer = parseInt(localStorage.getItem('sunny_data_ver')) || 0;
   if (savedVer >= DATA_VERSION) return;
   
-  // 合并新商品
+  // 合并新商品 / 更新已有（补缺失字段）
   const existing = getItemsRaw();
   DEMO_ITEMS.forEach(demo => {
-    if (!existing.some(e => e.title === demo.title && e.price === demo.price)) {
+    const idx = existing.findIndex(e => e.title === demo.title && e.price === demo.price);
+    if (idx >= 0) {
+      existing[idx] = { ...demo, ...existing[idx] };
+    } else {
       existing.push(demo);
     }
   });
