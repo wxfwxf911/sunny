@@ -515,6 +515,7 @@ body {
     <button class="btn-add" onclick="openAddModal()">+ 发布物品</button>
     <button class="btn-admin" id="btnAdmin" onclick="toggleAdmin()">⚙️ 管理</button>
     <button class="btn-admin" id="btnChangePwd" onclick="openChangePwdModal()" style="display:none">🔑 改密</button>
+    <button class="btn-admin" id="btnExport" onclick="exportUserItems()" style="display:none">💾 导出</button>
     <button class="btn-share" onclick="openShareModal()">📤 分享</button>
   </div>
 </header>
@@ -1103,6 +1104,7 @@ function toggleAdmin() {
     document.getElementById('btnAdmin').classList.remove('active');
     document.getElementById('btnAdmin').textContent = '⚙️ 管理';
     document.getElementById('btnChangePwd').style.display = 'none';
+    document.getElementById('btnExport').style.display = 'none';
     document.body.classList.remove('admin-mode');
     renderList();
     showToast('已退出管理模式');
@@ -1118,9 +1120,28 @@ function toggleAdmin() {
   document.getElementById('btnAdmin').classList.add('active');
   document.getElementById('btnAdmin').textContent = '⚙️ 管理中...';
   document.getElementById('btnChangePwd').style.display = '';
+  document.getElementById('btnExport').style.display = '';
   document.body.classList.add('admin-mode');
   renderList();
   showToast('🔧 已进入管理模式，可编辑/删除物品');
+}
+
+function exportUserItems() {
+  const userItems = getItemsRaw();
+  // 导出非演示数据（用户自己发布的 + 不在 DEMO_ITEMS 里的）
+  const exportData = JSON.stringify(userItems, null, 2);
+  try {
+    navigator.clipboard.writeText(exportData);
+    showToast('📋 已复制 ' + userItems.length + ' 条商品数据到剪贴板，粘贴给我即可同步');
+  } catch(e) {
+    // Fallback: show in a textarea
+    const ta = document.createElement('textarea');
+    ta.value = exportData;
+    ta.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:80%;height:60%;z-index:9999;font-size:12px;padding:16px;border:2px solid var(--orange);border-radius:var(--radius);';
+    document.body.appendChild(ta);
+    ta.select();
+    showToast('📋 请复制文本框中的数据发给我');
+  }
 }
 
 function openChangePwdModal() {
