@@ -713,24 +713,51 @@ const DEMO_ITEMS = [
   { title:'Nike Air Max 270 跑鞋 42码', category:'运动', price:259, unit:'元/双', desc:'专柜购入，正品保证。只穿了两次跑步，鞋底几乎无磨损，码数买小了不合适。', contact:'13898765432', time:'3 天前' },
 ];
 
-function getItems() {
-  try { return JSON.parse(localStorage.getItem('sunny_items')) || [...DEMO_ITEMS]; }
-  catch(e) { return [...DEMO_ITEMS]; }
+// 数据版本号 — 每次更新 DEMO_ITEMS 时 +1
+const DATA_VERSION = 1;
+
+function upgradeData() {
+  const savedVer = parseInt(localStorage.getItem('sunny_data_ver')) || 0;
+  if (savedVer >= DATA_VERSION) return;
+  const existing = getItemsRaw();
+  DEMO_ITEMS.forEach(demo => {
+    if (!existing.some(e => e.title === demo.title && e.price === demo.price)) {
+      existing.push(demo);
+    }
+  });
+  saveItemsRaw(existing);
+  localStorage.setItem('sunny_data_ver', DATA_VERSION);
 }
+
+function getItemsRaw() {
+  try { return JSON.parse(localStorage.getItem('sunny_items')) || []; }
+  catch(e) { return []; }
+}
+
+function getItems() {
+  upgradeData();
+  const saved = getItemsRaw();
+  return saved.length > 0 ? saved : [...DEMO_ITEMS];
+}
+
+function saveItemsRaw(items) { localStorage.setItem('sunny_items', JSON.stringify(items)); }
+
 function saveItems(items) {
   try {
-    localStorage.setItem("sunny_items", JSON.stringify(items));
+    saveItemsRaw(items);
     return true;
   } catch(e) {
-    console.warn("保存数据失败:", e.message);
+    console.warn('保存数据失败:', e.message);
     return false;
   }
 }
 
 // Seed localStorage with demo data on first visit
 if (!localStorage.getItem('sunny_items')) {
-  saveItems(DEMO_ITEMS);
+  saveItemsRaw(DEMO_ITEMS);
+  localStorage.setItem('sunny_data_ver', DATA_VERSION);
 }
+upgradeData();
 
 let currentCat = '全部';
 let items = getItems();
