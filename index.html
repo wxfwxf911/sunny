@@ -1151,39 +1151,66 @@ async function syncToGitHub() {
   };
 
   try {
-    // 1. 获取当前 data.json 的 SHA + 版本号
+    // 1. 获取当前 data.json
     const getResp = await fetch(API + '/repos/' + repo + '/contents/' + path, { headers });
     if (!getResp.ok) throw new Error('获取文件信息失败');
     const fileData = await getResp.json();
     const sha = fileData.sha;
-    // 解析当前版本号
     let currentVer = 1;
     try {
-      const currentContent = JSON.parse(atob(fileData.content));
-      currentVer = currentContent.version || 1;
+      currentVer = JSON.parse(atob(fileData.content)).version || 1;
     } catch(e) {}
 
-    // 2. 准备新内容 — 去掉 _local 标记，版本号 +1
-    const allItems = getItemsRaw().map(i => { const {_local, ...clean} = i; return clean; });
+    // 2. 处理图片：base64 → 上传到 /images/ → 替换为 CDN URL
+    let allItems = getItemsRaw().map(i => { const {_local, ...clean} = i; return clean; });
+    let imgCount = 0;
+    for (let i = 0; i < allItems.length; i++) {
+      const item = allItems[i];
+      if (item.image && item.image.startsWith('data:image')) {
+        // 只上传 base64 图片，已有 URL 的跳过
+        const ext = item.image.includes('image/png') ? 'png' : 'jpg';
+        const base64Data = item.image.split(',')[1];
+        const imgName = 'img_' + Date.now() + '_' + i + '.' + ext;
+        const imgPath = 'images/' + imgName;
+        try {
+          const putImg = await fetch(API + '/repos/' + repo + '/contents/' + imgPath, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({
+              message: '📷 上传商品图片: ' + (item.title || imgName),
+              content: base64Data
+            })
+          });
+          if (putImg.ok) {
+            allItems[i].image = 'https://wxfwxf911.github.io/sunny/' + imgPath;
+            imgCount++;
+          }
+        } catch(imgErr) {
+          console.warn('图片上传失败，保留 base64:', imgErr.message);
+        }
+      }
+    }
+
+    // 3. 更新 data.json (用 URL 替代 base64，体积大幅缩小)
     const newData = { version: currentVer + 1, items: allItems };
     const jsonStr = JSON.stringify(newData, null, 2);
     const content = btoa(unescape(encodeURIComponent(jsonStr)));
 
-    // 3. 更新文件
     const putResp = await fetch(API + '/repos/' + repo + '/contents/' + path, {
       method: 'PUT',
       headers,
       body: JSON.stringify({
-        message: '🔄 自动同步 (v' + (currentVer + 1) + ', ' + allItems.length + '件)',
+        message: '🔄 自动同步 v' + (currentVer + 1) + ' (' + allItems.length + '件' + (imgCount ? ', ' + imgCount + '图' : '') + ')',
         content: content,
         sha: sha
       })
     });
     if (!putResp.ok) throw new Error('提交失败');
 
-    // 4. 同步成功后：更新本地版本号，去掉所有 _local 标记
+    // 4. 同步成功
     localStorage.setItem('sunny_server_ver', currentVer + 1);
     saveItemsRaw(allItems);
+    if (imgCount) showToast('📷 ' + imgCount + ' 张图片已上传到图床');
     return true;
   } catch(e) {
     console.error('GitHub 同步失败:', e.message);
