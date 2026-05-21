@@ -672,15 +672,21 @@ body {
 const DEFAULT_CATEGORIES = ['全部', '数码', '家具', '服饰', '书籍', '运动', '音响', '其他'];
 
 function getCategories() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('sunny_categories'));
-    if (saved && Array.isArray(saved) && saved.length > 0) return saved;
-  } catch(e) {}
+  upgradeData();
+  const saved = getCategoriesRaw();
+  if (saved && Array.isArray(saved) && saved.length > 0) return saved;
   return [...DEFAULT_CATEGORIES];
 }
 function saveCategories(cats) {
-  localStorage.setItem('sunny_categories', JSON.stringify(cats));
+  try {
+    saveCategoriesRaw(cats);
+    return true;
+  } catch(e) {
+    console.warn('保存分类失败:', e.message);
+    return false;
+  }
 }
+
 // Seed on first visit
 if (!localStorage.getItem('sunny_categories')) {
   saveCategories(DEFAULT_CATEGORIES);
@@ -719,6 +725,8 @@ const DATA_VERSION = 1;
 function upgradeData() {
   const savedVer = parseInt(localStorage.getItem('sunny_data_ver')) || 0;
   if (savedVer >= DATA_VERSION) return;
+  
+  // 合并新商品
   const existing = getItemsRaw();
   DEMO_ITEMS.forEach(demo => {
     if (!existing.some(e => e.title === demo.title && e.price === demo.price)) {
@@ -726,7 +734,18 @@ function upgradeData() {
     }
   });
   saveItemsRaw(existing);
+  
+  // 合并新分类
+  const savedCats = getCategoriesRaw();
+  const mergedCats = [...new Set([...DEFAULT_CATEGORIES, ...savedCats])];
+  saveCategoriesRaw(mergedCats);
+  
   localStorage.setItem('sunny_data_ver', DATA_VERSION);
+}
+
+function getCategoriesRaw() {
+  try { return JSON.parse(localStorage.getItem('sunny_categories')) || []; }
+  catch(e) { return []; }
 }
 
 function getItemsRaw() {
@@ -742,6 +761,8 @@ function getItems() {
 
 function saveItemsRaw(items) { localStorage.setItem('sunny_items', JSON.stringify(items)); }
 
+function saveCategoriesRaw(cats) { localStorage.setItem('sunny_categories', JSON.stringify(cats)); }
+
 function saveItems(items) {
   try {
     saveItemsRaw(items);
@@ -756,6 +777,9 @@ function saveItems(items) {
 if (!localStorage.getItem('sunny_items')) {
   saveItemsRaw(DEMO_ITEMS);
   localStorage.setItem('sunny_data_ver', DATA_VERSION);
+}
+if (!localStorage.getItem('sunny_categories')) {
+  saveCategoriesRaw(DEFAULT_CATEGORIES);
 }
 upgradeData();
 
