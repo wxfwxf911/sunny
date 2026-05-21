@@ -3,7 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>☀️ 阳光二手集市</title>
+<title>☀️ 阳光二手集市 — 让闲置焕发新生</title>
+<meta name="description" content="阳光二手集市是一个免费、便捷的二手物品交易平台。支持发布闲置、分类浏览、在线搜索，让每一件闲置物品找到新主人。">
+<meta name="keywords" content="二手,闲置,交易,集市,二手市场,二手交易,闲置物品,数码,家具,服饰,书籍,运动">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://wxfwxf911.github.io/sunny/">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://wxfwxf911.github.io/sunny/">
+<meta property="og:title" content="☀️ 阳光二手集市 — 让闲置焕发新生">
+<meta property="og:description" content="免费便捷的二手物品交易平台。发布闲置、分类浏览、在线搜索，让每一件闲置物品找到新主人。">
+<meta property="og:locale" content="zh_CN">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://wxfwxf911.github.io/sunny/">
+<meta name="twitter:title" content="☀️ 阳光二手集市 — 让闲置焕发新生">
+<meta name="twitter:description" content="免费便捷的二手物品交易平台。发布闲置、分类浏览、在线搜索。">
+
+<!-- Favicon -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☀️</text></svg>">
 <style>
 /* ========== Reset & Base ========== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -130,6 +150,46 @@ body {
 }
 .btn-admin:hover { background: rgba(255,255,255,0.4); }
 .btn-admin.active { background: #fff; color: var(--orange); border-color: #fff; }
+
+.btn-share {
+  padding: 12px 20px;
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-share:hover { background: rgba(255,255,255,0.4); }
+
+/* Share Modal */
+.share-options {
+  display: flex; flex-direction: column; gap: 12px;
+}
+.share-link-row {
+  display: flex; gap: 8px;
+}
+.share-link-input {
+  flex: 1; padding: 10px 14px;
+  border: 2px solid #e8ddd0; border-radius: var(--radius-sm);
+  font-size: 13px; background: #fafafa; color: var(--text);
+}
+.btn-copy {
+  padding: 10px 20px; background: var(--orange); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-weight: 700; cursor: pointer;
+  white-space: nowrap; transition: transform 0.15s;
+}
+.btn-copy:hover { transform: scale(1.03); }
+.qr-wrap {
+  text-align: center; padding: 10px;
+}
+.qr-wrap img {
+  border: 1px solid #f0e8db; border-radius: var(--radius-sm);
+}
 
 /* ========== Category Bar ========== */
 .cat-bar {
@@ -576,6 +636,29 @@ body {
         <p class="form-error" id="pwdError"></p>
         <button type="submit" class="btn-submit">✅ 确认修改</button>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Share Modal ==================== -->
+<div class="modal-overlay" id="shareModal" style="display:none" onclick="if(event.target===this)closeShareModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📤 分享给朋友</h2>
+      <button class="modal-close" onclick="closeShareModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="share-options">
+        <div class="share-link-row">
+          <input class="share-link-input" id="shareLink" type="text" readonly value="https://wxfwxf911.github.io/sunny/" onclick="this.select()">
+          <button class="btn-copy" onclick="copyShareLink()">📋 复制链接</button>
+        </div>
+        <div class="qr-wrap">
+          <p style="margin-bottom:10px;color:var(--text-light);font-size:13px">📱 手机扫一扫打开</p>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://wxfwxf911.github.io/sunny/" alt="QR Code" width="200" height="200" onerror="this.parentElement.style.display='none'">
+          <p style="margin-top:8px;font-size:12px;color:var(--text-light)">微信 / QQ / 浏览器扫码均可</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1060,6 +1143,27 @@ function editItem(filteredIdx) {
   form.dataset.editing = masterIdx;
   document.querySelector('#addModal .modal-header h2').textContent = '✏️ 编辑物品';
   document.querySelector('#addModal .btn-submit').textContent = '💾 保存修改';
+}
+
+// ==================== SHARE ====================
+function openShareModal() {
+  document.getElementById('shareModal').style.display = 'flex';
+}
+
+function closeShareModal() {
+  document.getElementById('shareModal').style.display = 'none';
+}
+
+function copyShareLink() {
+  const input = document.getElementById('shareLink');
+  input.select();
+  try {
+    navigator.clipboard.writeText(input.value);
+    showToast('📋 链接已复制，快去分享给朋友吧！');
+  } catch(e) {
+    document.execCommand('copy');
+    showToast('📋 链接已复制！');
+  }
 }
 
 // ==================== INIT ====================
