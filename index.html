@@ -632,7 +632,15 @@ function getItems() {
   try { return JSON.parse(localStorage.getItem('sunny_items')) || [...DEMO_ITEMS]; }
   catch(e) { return [...DEMO_ITEMS]; }
 }
-function saveItems(items) { localStorage.setItem('sunny_items', JSON.stringify(items)); }
+function saveItems(items) {
+  try {
+    localStorage.setItem("sunny_items", JSON.stringify(items));
+    return true;
+  } catch(e) {
+    console.warn("保存数据失败:", e.message);
+    return false;
+  }
+}
 
 // Seed localStorage with demo data on first visit
 if (!localStorage.getItem('sunny_items')) {
@@ -895,16 +903,20 @@ function submitItem(e) {
   if (editingIdx !== undefined && editingIdx !== '') {
     itemData.time = items[parseInt(editingIdx)].time || '已编辑';
     items[parseInt(editingIdx)] = itemData;
-    showToast('✅ 物品已更新');
   } else {
     itemData.time = '刚刚';
     items.unshift(itemData);
     currentCat = '全部';
     document.getElementById('searchInput').value = '';
-    showToast('🎉 宝贝发布成功！');
   }
 
-  saveItems(items);
+  if (saveItems(items)) {
+    showToast(editingIdx !== undefined && editingIdx !== '' ? '✅ 物品已更新' : '🎉 宝贝发布成功！');
+  } else {
+    showToast('⚠️ 存储空间不足，数据无法保存，请清理浏览器数据');
+  }
+
+  saveItems(items)
   uploadedImage = null;
   closeAddModal();
   renderCatBar();
