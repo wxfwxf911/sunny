@@ -520,9 +520,8 @@ body {
     <button class="btn-admin" id="btnAdmin" onclick="toggleAdmin()">⚙️ 管理</button>
     <button class="btn-admin" id="btnChangePwd" onclick="openChangePwdModal()" style="display:none">🔑 改密</button>
     <button class="btn-admin" id="btnExport" onclick="exportUserItems()" style="display:none">💾 导出</button>
-    <button class="btn-admin" id="btnToken" onclick="setupToken()" style="display:none">🔐 设置Token</button>
-    <span id="syncStatus" style="display:none;color:#fff;font-size:12px;font-weight:600"></span>
-    <button class="btn-admin" id="btnSync" onclick="manualSync()" style="display:none">🔄 同步</button>
+    <span id="syncStatus" style="color:#90EE90;font-size:12px;font-weight:600">🟢 自动同步</span>
+    <button class="btn-admin" id="btnSync" onclick="manualSync()">🔄 同步</button>
     <button class="btn-share" onclick="openShareModal()">📤 分享</button>
   </div>
 </header>
@@ -810,6 +809,16 @@ function delItem(idx){
 
 renderCatBar();renderList();
 loadFromServer();
+
+// ==================== HTML onclick 别名 ====================
+var openAddModal=openPublish, closeAddModal=closePublish;
+var openChangePwdModal=openPwdModal, openShareModal=openShare, closeShareModal=closeShare;
+var changePassword=changePwd;
+var exportUserItems=function(){var j=JSON.stringify(DATA,null,2);var b=new Blob([j],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="sunny_backup.json";a.click();URL.revokeObjectURL(a.href)};
+var manualSync=function(){syncToGitHub("🔄 手动同步");setTimeout(function(){location.reload()},3000)};
+var setupToken=function(){alert("GitHub Token 已内置，无需手动设置 ✅")};
+var removeImage=function(){var p=document.getElementById("uploadPreviewWrap");if(p)p.style.display="none"};
+var previewImage=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){var p=document.getElementById("uploadPreviewWrap");var im=document.getElementById("uploadPreview");if(p&&im){im.src=ev.target.result;p.style.display="block"}};r.readAsDataURL(f)};
 </script>
 </body>
 </html>
