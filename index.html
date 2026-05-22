@@ -726,13 +726,10 @@ async function loadServerData() {
       localStorage.setItem('sunny_admin_pwd', data._config.admin_pwd);
     }
 
-    renderCatBar();
-    renderList();
     console.log("✅ 服务器数据 v" + serverVer + ": " + SERVER_ITEMS.length + " 件");
   } catch(e) {
     console.warn("加载服务器数据失败，使用本地缓存:", e.message);
-    renderCatBar();
-    renderList();
+    // Init 流程已经渲染了本地数据，这里不需要再渲染
   }
 }
 
@@ -784,7 +781,11 @@ const EMOJIS = ['🎁', '📱', '🪑', '👗', '📚', '⚽', '🎧', '⌚', '�
 
 function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-const DEMO_ITEMS = []; // 从 data.json 加载
+const DEMO_ITEMS = [
+  {title:'示例：手机壳',category:'数码',price:15,unit:'元',desc:'全新未使用',contact:'微信: example',time:'示例'},
+  {title:'示例：实木小桌',category:'家具',price:80,unit:'元',desc:'八成新，自提',contact:'微信: example',time:'示例'},
+  {title:'示例：音响喇叭',category:'音响',price:50,unit:'元',desc:'功能正常',contact:'微信: example',time:'示例'}
+]; // 页面初始兜底数据，加载 data.json 后自动替换
 let SERVER_ITEMS = []; // 服务器上 data.json 的数据
 
 // 数据版本号 — 每次同步 data.json 时 +1
@@ -1492,6 +1493,10 @@ function copyShareLink() {
 }
 
 // ==================== INIT ====================
+// 立即渲染兜底数据，避免白屏
+renderCatBar();
+renderList();
+// 异步加载服务器数据，加载完成后刷新列表
 loadServerData().then(() => {
   renderCatBar();
   renderList();
