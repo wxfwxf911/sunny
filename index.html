@@ -711,6 +711,22 @@ async function loadServerData() {
     
     mergeServerItems();
     syncCategoriesFromServer(); // 自动从服务器数据提取分类，确保手机端同步
+
+    // 同步服务器端的分类列表和密码配置
+    if (data.categories && Array.isArray(data.categories) && data.categories.length > 0) {
+      const localCats = getCategories();
+      const merged = [...new Set([...data.categories, ...localCats])];
+      if (data.categories[0] !== '全部') merged.unshift('全部');
+      if (JSON.stringify(merged) !== JSON.stringify(localCats)) {
+        saveCategories(merged.filter((v,i,a) => a.indexOf(v) === i));
+        console.log('🔄 分类已从服务器同步');
+      }
+    }
+    if (data._config && data._config.admin_pwd && serverVer > localVer) {
+      localStorage.setItem('sunny_admin_pwd', data._config.admin_pwd);
+      console.log('🔄 管理密码已从服务器同步');
+    }
+
     renderCatBar();
     renderList();
     console.log("✅ 服务器数据 v" + serverVer + ": " + SERVER_ITEMS.length + " 件");
@@ -1176,8 +1192,13 @@ async function syncToGitHub() {
     const fileData = await getResp.json();
     const sha = fileData.sha;
     let currentVer = 1;
+    let serverCats = [];
+    let serverPwd = '';
     try {
-      currentVer = JSON.parse(atob(fileData.content)).version || 1;
+      const raw = JSON.parse(atob(fileData.content));
+      currentVer = raw.version || 1;
+      serverCats = raw.categories || [];
+      serverPwd = (raw._config && raw._config.admin_pwd) || '';
     } catch(e) {}
 
     // 2. 处理图片：base64 → 上传到 /images/ → 替换为 CDN URL
@@ -1210,8 +1231,16 @@ async function syncToGitHub() {
       }
     }
 
-    // 3. 更新 data.json (用 URL 替代 base64，体积大幅缩小)
-    const newData = { version: currentVer + 1, items: allItems };
+    // 3. 更新 data.json（含分类+配置同步，先合并服务器端数据避免覆盖）
+    const localCats = getCategories();
+    const mergedCats = [...new Set([...serverCats, ...localCats])].filter(c => c);
+    const syncPwd = getAdminPassword() || serverPwd || DEFAULT_PASSWORD;
+    const newData = {
+      version: currentVer + 1,
+      items: allItems,
+      categories: mergedCats,
+      _config: { admin_pwd: syncPwd }
+    };
     const jsonStr = JSON.stringify(newData, null, 2);
     // UTF-8 safe base64: encode URI → decode percent-encoded bytes → btoa
     const content = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode('0x' + p1)));
@@ -1464,6 +1493,14 @@ setInterval(async function() {
       localStorage.setItem('sunny_server_ver', serverVer);
       mergeServerItems();
       syncCategoriesFromServer();
+      if (data.categories && Array.isArray(data.categories) && data.categories.length > 0) {
+        const localCats = getCategories();
+        const merged = [...new Set([...data.categories, ...localCats])];
+        saveCategories(merged.filter((v,i,a) => a.indexOf(v) === i));
+      }
+      if (data._config && data._config.admin_pwd) {
+        localStorage.setItem('sunny_admin_pwd', data._config.admin_pwd);
+      }
       renderCatBar();
       renderList();
     }
