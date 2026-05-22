@@ -847,7 +847,7 @@ function editItem(idx){
 }
 
 renderCatBar();renderList();
-loadFromServer();
+loadFromServer();setInterval(function(){loadFromServer()},15000);
 
 // ==================== HTML onclick 别名 ====================
 var openAddModal=openPublish, closeAddModal=closePublish;
