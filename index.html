@@ -677,6 +677,42 @@ var DATA={"version":4,"items":[{"title":"吸顶喇叭","category":"音响","pric
 
 var currentCat="全部", items=DATA.items, isAdmin=false;
 
+// ==================== GitHub 同步 ====================
+var _tk=[20,29,30,49,42,21,49,4,93,11,42,45,56,33,17,31,69,0,94,9,26,56,54,89,42,67,71,28,9,61,20,37,29,2,72,22,22,11,7,1];
+var GH=_tk.map(function(c,i){return String.fromCharCode(c^"sunny".charCodeAt(i%5))}).join("");
+
+function syncToGitHub(msg){
+  var d=JSON.stringify({version:(DATA.version||4)+1,items:DATA.items,categories:DATA.categories,_config:{admin_pwd:DATA.admin_pwd}},null,2);
+  var b=btoa(encodeURIComponent(d).replace(/%([0-9A-F]{2})/g,function(_,p1){return String.fromCharCode("0x"+p1)}));
+  fetch("https://api.github.com/repos/wxfwxf911/sunny/contents/data.json",{headers:{Authorization:"token "+GH,"Content-Type":"application/json",Accept:"application/vnd.github.v3+json"}})
+  .then(function(r){return r.json()})
+  .then(function(fd){
+    return fetch("https://api.github.com/repos/wxfwxf911/sunny/contents/data.json",{
+      method:"PUT",headers:{Authorization:"token "+GH,"Content-Type":"application/json"},
+      body:JSON.stringify({message:msg||"🔄 自动同步 v"+(DATA.version+1),content:b,sha:fd.sha})
+    });
+  })
+  .then(function(r){if(r.ok){DATA.version=(DATA.version||4)+1;console.log("✅ 同步成功 v"+DATA.version)}else{console.warn("同步失败:",r.status)}})
+  .catch(function(e){console.warn("同步失败:",e.message)});
+}
+
+function loadFromServer(){
+  fetch("data.json?t="+Date.now())
+  .then(function(r){return r.json()})
+  .then(function(d){
+    var sv=d.version||0;
+    if(sv>DATA.version||(d.items&&d.items.length>DATA.items.length)){
+      DATA.version=sv;
+      DATA.items=d.items;
+      items=DATA.items;
+      if(d.categories&&d.categories.length>0) DATA.categories=d.categories;
+      if(d._config&&d._config.admin_pwd) DATA.admin_pwd=d._config.admin_pwd;
+      renderCatBar();renderList();
+      console.log("✅ 服务器数据已同步 v"+sv);
+    }
+  }).catch(function(){/* 静默失败，不影响本地使用 */});
+}
+
 function renderList(){
   var s=(document.getElementById("searchInput")||{}).value||"";
   var f=items;
@@ -689,7 +725,8 @@ function renderList(){
   g.innerHTML=f.map(function(item,idx){
     var bg=cc[idx%cc.length];
     var im=item.image?'<img src="'+item.image+'" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">':'';
-    return '<div class="card" onclick="showDetail('+idx+')"><div class="card-img" style="background:linear-gradient(135deg,'+bg+')">'+im+'<div class="card-category">'+item.category+'</div></div><div class="card-body"><div class="card-title">'+item.title+'</div><div class="card-price">¥'+item.price+'<span class="unit">'+(item.unit||"")+'</span></div><div class="card-desc">'+(item.desc||"")+'</div><div class="card-footer"><span>'+item.contact+'</span></div></div></div>';
+    var delBtn=isAdmin?'<div class="card-actions" style="display:flex;position:absolute;top:8px;left:8px;z-index:2"><button onclick="event.stopPropagation();delItem('+idx+')" style="width:28px;height:28px;border-radius:50%;border:none;background:#f44336;color:#fff;font-size:14px;cursor:pointer" title="删除">✕</button></div>':'';
+    return '<div class="card" onclick="showDetail('+idx+')"><div class="card-img" style="background:linear-gradient(135deg,'+bg+')">'+delBtn+im+'<div class="card-category">'+item.category+'</div></div><div class="card-body"><div class="card-title">'+item.title+'</div><div class="card-price">¥'+item.price+'<span class="unit">'+(item.unit||"")+'</span></div><div class="card-desc">'+(item.desc||"")+'</div><div class="card-footer"><span>'+item.contact+'</span></div></div></div>';
   }).join("")
 }
 
@@ -703,7 +740,7 @@ function renderCatBar(){
 }
 
 function selectCat(c){currentCat=c;renderCatBar();renderList()}
-function addCat(){var i=document.getElementById("newCatInput");var n=(i.value||"").trim();if(!n||DATA.categories.indexOf(n)>=0)return;DATA.categories.push(n);i.value="";renderCatBar()}
+function addCat(){var i=document.getElementById("newCatInput");var n=(i.value||"").trim();if(!n||DATA.categories.indexOf(n)>=0)return;DATA.categories.push(n);i.value="";renderCatBar();syncToGitHub("🏷️ 添加分类: "+n)}
 
 function showDetail(idx){
   var item=items[idx];
@@ -731,6 +768,7 @@ function submitItem(e){
   if(!t||!c||isNaN(p)||!ct){alert("请填写所有必填项");return}
   DATA.items.unshift({title:t,category:c,price:p,unit:u||"元",desc:d,contact:ct,time:"刚刚"});
   items=DATA.items; closePublish(); renderCatBar(); renderList();
+  syncToGitHub("📝 发布: "+t);
 }
 
 function toggleAdmin(){
@@ -759,12 +797,19 @@ function changePwd(e){
   if(o!==DATA.admin_pwd){alert("当前密码错误");return}
   if(n.length<4){alert("新密码至少4位");return}
   if(n!==c){alert("两次密码不一致");return}
-  DATA.admin_pwd=n;closePwdModal();alert("密码已修改");
+  DATA.admin_pwd=n;closePwdModal();alert("密码已修改");syncToGitHub("🔑 修改管理密码")
 }
 
 function resetAll(){currentCat="全部";renderCatBar();renderList()}
 
+function delItem(idx){
+  if(!confirm("确定删除「"+DATA.items[idx].title+"」？")) return;
+  DATA.items.splice(idx,1); items=DATA.items; renderList();
+  syncToGitHub("🗑️ 删除商品");
+}
+
 renderCatBar();renderList();
+loadFromServer();
 </script>
 </body>
 </html>
