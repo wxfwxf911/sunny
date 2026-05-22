@@ -676,6 +676,13 @@ body {
 // ==================== 内置兜底数据（网络不可用时使用） ====================
 const BUILTIN_DATA = {"version":4,"items":[{"title":"吸顶喇叭","category":"音响","price":30,"unit":"元/个","desc":"惠威吸顶喇叭，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455623065_0.jpg","time":"刚刚"},{"title":"电脑显示屏","category":"数码","price":150,"unit":"元/台","desc":"21寸三星电脑显示屏，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455625423_1.jpg","time":"刚刚"},{"title":"汽车轮胎","category":"汽配","price":80,"unit":"元/只","desc":"原车拆件，保证正品，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415700989_0.jpg","time":"刚刚"},{"title":"惠威吸顶喇叭+先科功放","category":"音响","price":280,"unit":"元/套","desc":"惠威TD206吸顶喇叭（3只），正品，八成新，声音清脆，带先科SA-9006功放适合100平米的商铺，做背景音乐系统。","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415703243_1.jpg","time":"刚刚"},{"title":"拼接屏","category":"音响","price":1680,"unit":"元人民币/台","desc":"2X2 共四块屏，单屏48寸，七成新，画质清晰特别适合酒吧，KTV，会议室使用","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415704822_2.jpg","time":"今天"}],"categories":["全部","数码","家具","音响","其他","汽配"],"_config":{"admin_pwd":"admin123"}};
 
+// ==================== 全局错误捕获 ====================
+window.onerror = function(msg, url, line, col, err) {
+  var el = document.getElementById('grid');
+  if (el) el.innerHTML = '<div style="background:#fff;padding:20px;margin:20px;border-radius:12px;border:2px solid red"><h3 style="color:red">❌ JavaScript 错误</h3><p><b>消息：</b>' + msg + '</p><p><b>行号：</b>' + line + '</p><p><b>列号：</b>' + col + '</p><p><b>详情：</b>' + (err ? err.stack : '无') + '</p></div>';
+  return false;
+};
+
 // ==================== DATA LAYER ====================
 const DEFAULT_CATEGORIES = ['全部', '数码', '家具', '音响', '其他'];
 
