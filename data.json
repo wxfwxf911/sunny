@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "items": [
     {
       "title": "吸顶喇叭",
@@ -51,5 +51,16 @@
       "image": "https://wxfwxf911.github.io/sunny/images/img_1779415704822_2.jpg",
       "time": "今天"
     }
-  ]
+  ],
+  "categories": [
+    "全部",
+    "数码",
+    "家具",
+    "音响",
+    "其他",
+    "汽配"
+  ],
+  "_config": {
+    "admin_pwd": "admin123"
+  }
 }
