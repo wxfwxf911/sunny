@@ -674,7 +674,7 @@ body {
 <script>
 var DATA={"version":4,"items":[{"title":"吸顶喇叭","category":"音响","price":30,"unit":"元/个","desc":"惠威吸顶喇叭，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455623065_0.jpg","time":"刚刚"},{"title":"电脑显示屏","category":"数码","price":150,"unit":"元/台","desc":"21寸三星电脑显示屏，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455625423_1.jpg","time":"刚刚"},{"title":"汽车轮胎","category":"汽配","price":80,"unit":"元/只","desc":"原车拆件，保证正品，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415700989_0.jpg","time":"刚刚"},{"title":"惠威吸顶喇叭+先科功放","category":"音响","price":280,"unit":"元/套","desc":"惠威TD206吸顶喇叭（3只），正品，八成新，声音清脆，带先科SA-9006功放适合100平米的商铺，做背景音乐系统。","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415703243_1.jpg","time":"刚刚"},{"title":"拼接屏","category":"音响","price":1680,"unit":"元人民币/台","desc":"2X2 共四块屏，单屏48寸，七成新，画质清晰特别适合酒吧，KTV，会议室使用","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415704822_2.jpg","time":"今天"}],"categories":["全部","数码","家具","音响","其他","汽配"],"admin_pwd":"admin123"};
 
-var currentCat="全部", items=DATA.items, isAdmin=false, uploadedImage="";
+var currentCat="全部", items=DATA.items, isAdmin=false, uploadedImage="", editingIdx=-1;
 
 // ==================== GitHub 同步 ====================
 var _tk=[20,29,30,49,42,21,49,4,93,11,42,45,56,33,17,31,69,0,94,9,26,56,54,89,42,67,71,28,9,61,20,37,29,2,72,22,22,11,7,1];
@@ -724,7 +724,7 @@ function renderList(){
   g.innerHTML=f.map(function(item,idx){
     var bg=cc[idx%cc.length];
     var im=item.image?'<img src="'+item.image+'" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">':'';
-    var delBtn=isAdmin?'<div class="card-actions" style="display:flex;position:absolute;top:8px;left:8px;z-index:2"><button onclick="event.stopPropagation();delItem('+idx+')" style="width:28px;height:28px;border-radius:50%;border:none;background:#f44336;color:#fff;font-size:14px;cursor:pointer" title="删除">✕</button></div>':'';
+    var delBtn=isAdmin?'<div class="card-actions" style="display:flex;position:absolute;top:8px;left:8px;z-index:2;gap:6px"><button onclick="event.stopPropagation();editItem('+idx+')" style="width:28px;height:28px;border-radius:50%;border:none;background:#2196F3;color:#fff;font-size:14px;cursor:pointer" title="编辑">✎</button><button onclick="event.stopPropagation();delItem('+idx+')" style="width:28px;height:28px;border-radius:50%;border:none;background:#f44336;color:#fff;font-size:14px;cursor:pointer" title="删除">✕</button></div>':'';
     return '<div class="card" onclick="showDetail('+idx+')"><div class="card-img" style="background:linear-gradient(135deg,'+bg+')">'+delBtn+im+'<div class="card-category">'+item.category+'</div></div><div class="card-body"><div class="card-title">'+item.title+'</div><div class="card-price">¥'+item.price+'<span class="unit">'+(item.unit||"")+'</span></div><div class="card-desc">'+(item.desc||"")+'</div><div class="card-footer"><span>'+item.contact+'</span></div></div></div>';
   }).join("")
 }
@@ -757,6 +757,8 @@ function closeDetail(){document.getElementById("detailModal").style.display="non
 function openPublish(){
   var sel=document.getElementById("formCategory");
   sel.innerHTML='<option value="">请选择分类</option>'+DATA.categories.filter(function(c){return c!=="全部"}).map(function(c){return'<option value="'+c+'">'+c+'</option>'}).join("");
+  editingIdx=-1; uploadedImage="";
+  document.getElementById("uploadPreviewWrap").style.display="none";
   document.getElementById("addModal").style.display="flex";
 }
 function closePublish(){document.getElementById("addForm").reset();document.getElementById("addModal").style.display="none"}
@@ -765,9 +767,16 @@ function submitItem(e){
   var f=document.getElementById("addForm");
   var t=f.formTitle.value.trim(),c=f.formCategory.value,p=parseFloat(f.formPrice.value),u=f.formUnit.value.trim(),d=f.formDesc.value.trim(),ct=f.formContact.value.trim();
   if(!t||!c||isNaN(p)||!ct){alert("请填写所有必填项");return}
-  DATA.items.unshift({title:t,category:c,price:p,unit:u||"元",desc:d,contact:ct,time:"刚刚",image:uploadedImage||""});
-  items=DATA.items; uploadedImage=""; closePublish(); renderCatBar(); renderList();
-  syncToGitHub("📝 发布: "+t);
+  var img=uploadedImage||"";
+  if(editingIdx>=0){
+    var old=DATA.items[editingIdx];
+    DATA.items[editingIdx]={title:t,category:c,price:p,unit:u||"元",desc:d,contact:ct,time:old.time||"已编辑",image:img||old.image||""};
+    syncToGitHub("✏️ 编辑: "+t);
+  }else{
+    DATA.items.unshift({title:t,category:c,price:p,unit:u||"元",desc:d,contact:ct,time:"刚刚",image:img});
+    syncToGitHub("📝 发布: "+t);
+  }
+  items=DATA.items; uploadedImage=""; editingIdx=-1; closePublish(); renderCatBar(); renderList();
 }
 
 function toggleAdmin(){
@@ -811,6 +820,20 @@ function delItem(idx){
   if(!confirm("确定删除「"+DATA.items[idx].title+"」？")) return;
   DATA.items.splice(idx,1); items=DATA.items; renderList();
   syncToGitHub("🗑️ 删除商品");
+}
+
+function editItem(idx){
+  editingIdx=idx;
+  var item=DATA.items[idx];
+  if(!item) return;
+  openPublish();
+  document.getElementById("formTitle").value=item.title;
+  document.getElementById("formCategory").value=item.category;
+  document.getElementById("formPrice").value=item.price;
+  document.getElementById("formUnit").value=item.unit||"";
+  document.getElementById("formDesc").value=item.desc||"";
+  document.getElementById("formContact").value=item.contact||"";
+  if(item.image&&item.image.indexOf("data:")===0){uploadedImage=item.image;var p=document.getElementById("uploadPreviewWrap");var im=document.getElementById("uploadPreview");if(p&&im){im.src=item.image;p.style.display="block"}}
 }
 
 renderCatBar();renderList();
