@@ -673,6 +673,9 @@ body {
 <div class="toast" id="toast" style="display:none"></div>
 
 <script>
+// ==================== 内置兜底数据（网络不可用时使用） ====================
+const BUILTIN_DATA = {"version":4,"items":[{"title":"吸顶喇叭","category":"音响","price":30,"unit":"元/个","desc":"惠威吸顶喇叭，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455623065_0.jpg","time":"刚刚"},{"title":"电脑显示屏","category":"数码","price":150,"unit":"元/台","desc":"21寸三星电脑显示屏，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455625423_1.jpg","time":"刚刚"},{"title":"汽车轮胎","category":"汽配","price":80,"unit":"元/只","desc":"原车拆件，保证正品，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415700989_0.jpg","time":"刚刚"},{"title":"惠威吸顶喇叭+先科功放","category":"音响","price":280,"unit":"元/套","desc":"惠威TD206吸顶喇叭（3只），正品，八成新，声音清脆，带先科SA-9006功放适合100平米的商铺，做背景音乐系统。","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415703243_1.jpg","time":"刚刚"},{"title":"拼接屏","category":"音响","price":1680,"unit":"元人民币/台","desc":"2X2 共四块屏，单屏48寸，七成新，画质清晰特别适合酒吧，KTV，会议室使用","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415704822_2.jpg","time":"今天"}],"categories":["全部","数码","家具","音响","其他","汽配"],"_config":{"admin_pwd":"admin123"}};
+
 // ==================== DATA LAYER ====================
 const DEFAULT_CATEGORIES = ['全部', '数码', '家具', '音响', '其他'];
 
@@ -697,21 +700,34 @@ async function loadServerData() {
     const resp = await fetch("data.json?t=" + Date.now());
     const data = await resp.json();
     // v2.2+: data.json 格式为 {version, items}
+    applyServerData(data, true);
+  } catch(e) {
+    console.warn("加载服务器数据失败，使用内置兜底数据:", e.message);
+    // 使用 HTML 内嵌的 BUILTIN_DATA 作为兜底
+    if (BUILTIN_DATA && BUILTIN_DATA.items && BUILTIN_DATA.items.length > 0) {
+      applyServerData(BUILTIN_DATA, false);
+    }
+  }
+}
+
+function applyServerData(data, fromServer) {
     const serverVer = data.version || 0;
     SERVER_ITEMS = data.items || data; // 兼容旧格式
     const localVer = parseInt(localStorage.getItem('sunny_server_ver')) || 0;
     
-    if (serverVer > localVer) {
+    if (serverVer > localVer || !fromServer) {
       // 服务器有更新，清除本地缓存，保留标记了 _local 的物品
       const localItems = getItemsRaw();
       const keepItems = localItems.filter(i => i._local === true);
-      console.log("🔄 服务器数据已更新(v" + serverVer + ")，保留本地未同步物品: " + keepItems.length + " 件");
-      saveItemsRaw([...SERVER_ITEMS, ...keepItems]);
-      localStorage.setItem('sunny_server_ver', serverVer);
+      if (fromServer) {
+        console.log("🔄 服务器数据已更新(v" + serverVer + ")，保留本地未同步物品: " + keepItems.length + " 件");
+        saveItemsRaw([...SERVER_ITEMS, ...keepItems]);
+        localStorage.setItem('sunny_server_ver', serverVer);
+      }
     }
     
     mergeServerItems();
-    syncCategoriesFromServer(); // 自动从服务器数据提取分类，确保手机端同步
+    syncCategoriesFromServer(); // 自动从服务器数据提取分类
 
     // 同步服务器端的分类列表和密码配置
     if (data.categories && Array.isArray(data.categories) && data.categories.length > 0) {
@@ -722,15 +738,11 @@ async function loadServerData() {
         saveCategories(merged.filter((v,i,a) => a.indexOf(v) === i));
       }
     }
-    if (data._config && data._config.admin_pwd && serverVer > localVer) {
+    if (data._config && data._config.admin_pwd && (serverVer > localVer || !fromServer)) {
       localStorage.setItem('sunny_admin_pwd', data._config.admin_pwd);
     }
 
-    console.log("✅ 服务器数据 v" + serverVer + ": " + SERVER_ITEMS.length + " 件");
-  } catch(e) {
-    console.warn("加载服务器数据失败，使用本地缓存:", e.message);
-    // Init 流程已经渲染了本地数据，这里不需要再渲染
-  }
+    console.log("✅ 数据已加载 v" + serverVer + ": " + SERVER_ITEMS.length + " 件 (来源:" + (fromServer?'服务器':'内置') + ")");
 }
 
 function mergeServerItems() {
