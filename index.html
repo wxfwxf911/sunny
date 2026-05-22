@@ -674,7 +674,7 @@ body {
 <script>
 var DATA={"version":4,"items":[{"title":"吸顶喇叭","category":"音响","price":30,"unit":"元/个","desc":"惠威吸顶喇叭，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455623065_0.jpg","time":"刚刚"},{"title":"电脑显示屏","category":"数码","price":150,"unit":"元/台","desc":"21寸三星电脑显示屏，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455625423_1.jpg","time":"刚刚"},{"title":"汽车轮胎","category":"汽配","price":80,"unit":"元/只","desc":"原车拆件，保证正品，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415700989_0.jpg","time":"刚刚"},{"title":"惠威吸顶喇叭+先科功放","category":"音响","price":280,"unit":"元/套","desc":"惠威TD206吸顶喇叭（3只），正品，八成新，声音清脆，带先科SA-9006功放适合100平米的商铺，做背景音乐系统。","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415703243_1.jpg","time":"刚刚"},{"title":"拼接屏","category":"音响","price":1680,"unit":"元人民币/台","desc":"2X2 共四块屏，单屏48寸，七成新，画质清晰特别适合酒吧，KTV，会议室使用","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415704822_2.jpg","time":"今天"}],"categories":["全部","数码","家具","音响","其他","汽配"],"admin_pwd":"admin123"};
 
-var currentCat="全部", items=DATA.items, isAdmin=false;
+var currentCat="全部", items=DATA.items, isAdmin=false, uploadedImage="";
 
 // ==================== GitHub 同步 ====================
 var _tk=[20,29,30,49,42,21,49,4,93,11,42,45,56,33,17,31,69,0,94,9,26,56,54,89,42,67,71,28,9,61,20,37,29,2,72,22,22,11,7,1];
@@ -765,8 +765,8 @@ function submitItem(e){
   var f=document.getElementById("addForm");
   var t=f.formTitle.value.trim(),c=f.formCategory.value,p=parseFloat(f.formPrice.value),u=f.formUnit.value.trim(),d=f.formDesc.value.trim(),ct=f.formContact.value.trim();
   if(!t||!c||isNaN(p)||!ct){alert("请填写所有必填项");return}
-  DATA.items.unshift({title:t,category:c,price:p,unit:u||"元",desc:d,contact:ct,time:"刚刚"});
-  items=DATA.items; closePublish(); renderCatBar(); renderList();
+  DATA.items.unshift({title:t,category:c,price:p,unit:u||"元",desc:d,contact:ct,time:"刚刚",image:uploadedImage||""});
+  items=DATA.items; uploadedImage=""; closePublish(); renderCatBar(); renderList();
   syncToGitHub("📝 发布: "+t);
 }
 
@@ -823,8 +823,8 @@ var changePassword=changePwd;
 var exportUserItems=function(){var j=JSON.stringify(DATA,null,2);var b=new Blob([j],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="sunny_backup.json";a.click();URL.revokeObjectURL(a.href)};
 var manualSync=function(){syncToGitHub("🔄 手动同步");setTimeout(function(){location.reload()},3000)};
 var setupToken=function(){alert("GitHub Token 已内置，无需手动设置 ✅")};
-var removeImage=function(){var p=document.getElementById("uploadPreviewWrap");if(p)p.style.display="none"};
-var previewImage=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){var p=document.getElementById("uploadPreviewWrap");var im=document.getElementById("uploadPreview");if(p&&im){im.src=ev.target.result;p.style.display="block"}};r.readAsDataURL(f)};
+var removeImage=function(){var p=document.getElementById("uploadPreviewWrap");if(p)p.style.display="none";uploadedImage=""};
+var previewImage=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){uploadedImage=ev.target.result;var p=document.getElementById("uploadPreviewWrap");var im=document.getElementById("uploadPreview");if(p&&im){im.src=uploadedImage;p.style.display="block"}};r.readAsDataURL(f)};
 </script>
 </body>
 </html>
