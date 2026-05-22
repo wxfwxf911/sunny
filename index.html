@@ -1441,9 +1441,34 @@ function copyShareLink() {
 }
 
 // ==================== INIT ====================
-loadServerData();
-renderCatBar();
-renderList();
+loadServerData().then(() => {
+  renderCatBar();
+  renderList();
+}).catch(() => {
+  renderCatBar();
+  renderList();
+});
+
+// 自动轮询：每 30 秒检查 data.json 版本，有更新自动刷新列表
+setInterval(async function() {
+  try {
+    const resp = await fetch('data.json?t=' + Date.now());
+    const data = await resp.json();
+    const serverVer = data.version || 0;
+    const localVer = parseInt(localStorage.getItem('sunny_server_ver')) || 0;
+    if (serverVer > localVer) {
+      console.log('🔄 检测到服务器数据更新 v' + localVer + ' → v' + serverVer);
+      SERVER_ITEMS = data.items || data;
+      const keepItems = getItemsRaw().filter(i => i._local === true);
+      saveItemsRaw([...SERVER_ITEMS, ...keepItems]);
+      localStorage.setItem('sunny_server_ver', serverVer);
+      mergeServerItems();
+      syncCategoriesFromServer();
+      renderCatBar();
+      renderList();
+    }
+  } catch(e) { /* 静默失败，不影响用户 */ }
+}, 30000);
 </script>
 </body>
 </html>
