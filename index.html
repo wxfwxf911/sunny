@@ -675,6 +675,22 @@ body {
 // ==================== DATA LAYER ====================
 const DEFAULT_CATEGORIES = ['全部', '数码', '家具', '音响', '其他'];
 
+// 从服务器商品数据中提取分类，合并到本地 localStorage，确保手机端与桌面端分类一致
+function syncCategoriesFromServer() {
+  const serverCats = new Set();
+  SERVER_ITEMS.forEach(item => { if (item.category) serverCats.add(item.category); });
+  const localCats = getCategories();
+  let merged = [...localCats];
+  serverCats.forEach(cat => { if (!merged.includes(cat)) merged.push(cat); });
+  // 确保「全部」排在第一位
+  merged = merged.filter(c => c !== '全部');
+  merged = ['全部', ...merged];
+  if (JSON.stringify(merged) !== JSON.stringify(localCats)) {
+    saveCategories(merged);
+    console.log('🔄 分类已从服务器数据同步: ' + merged.join(', '));
+  }
+}
+
 async function loadServerData() {
   try {
     const resp = await fetch("data.json?t=" + Date.now());
@@ -694,6 +710,7 @@ async function loadServerData() {
     }
     
     mergeServerItems();
+    syncCategoriesFromServer(); // 自动从服务器数据提取分类，确保手机端同步
     renderCatBar();
     renderList();
     console.log("✅ 服务器数据 v" + serverVer + ": " + SERVER_ITEMS.length + " 件");
