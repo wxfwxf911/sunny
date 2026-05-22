@@ -522,6 +522,7 @@ body {
     <button class="btn-admin" id="btnExport" onclick="exportUserItems()" style="display:none">💾 导出</button>
     <button class="btn-admin" id="btnToken" onclick="setupToken()" style="display:none">🔐 设置Token</button>
     <span id="syncStatus" style="display:none;color:#fff;font-size:12px;font-weight:600"></span>
+    <button class="btn-admin" id="btnSync" onclick="manualSync()" style="display:none">🔄 同步</button>
     <button class="btn-share" onclick="openShareModal()">📤 分享</button>
   </div>
 </header>
@@ -948,7 +949,10 @@ function addCategory() {
   input.value = '';
   updateCategorySelect();
   renderCatBar();
-  showToast('✅ 分类「' + name + '」已添加');
+  syncToGitHub().then(ok => {
+    if (ok) showToast('✅ 分类「' + name + '」已添加并同步');
+    else showToast('✅ 分类「' + name + '」已添加（本地）');
+  });
 }
 
 function deleteCategory(catName) {
@@ -971,6 +975,11 @@ function deleteCategory(catName) {
   updateCategorySelect();
   renderCatBar();
   renderList();
+  syncToGitHub().then(ok => {
+    if (ok) showToast('🗑️ 分类已删除并同步');
+    else showToast('🗑️ 分类已删除（本地）');
+  });
+}
   showToast('🗑️ 分类「' + catName + '」已删除');
 }
 
@@ -1270,15 +1279,25 @@ async function syncToGitHub() {
 function updateSyncStatus() {
   const span = document.getElementById('syncStatus');
   const btnToken = document.getElementById('btnToken');
+  const btnSync = document.getElementById('btnSync');
   span.style.display = '';
   span.textContent = '🟢 自动同步已开启';
   span.style.color = '#90EE90';
   if (adminMode) {
     btnToken.style.display = '';
     btnToken.textContent = '🔐 更新Token';
+    btnSync.style.display = '';
   } else {
     btnToken.style.display = 'none';
+    btnSync.style.display = 'none';
   }
+}
+
+async function manualSync() {
+  showToast('🔄 正在同步...');
+  const ok = await syncToGitHub();
+  if (ok) showToast('✅ 同步成功！分类、密码、商品已全部推送到服务器');
+  else alert('❌ 同步失败，请检查网络后重试');
 }
 
 // ==================== TOAST ====================
@@ -1391,7 +1410,10 @@ function changePassword(e) {
 
   setAdminPassword(newPwd);
   closePwdModal();
-  showToast('🔑 密码修改成功！');
+  syncToGitHub().then(ok => {
+    if (ok) showToast('🔑 密码已修改并同步到其他设备');
+    else showToast('🔑 密码已修改（本地），同步失败请稍后重试');
+  });
 }
 
 function deleteItem(filteredIdx) {
