@@ -1,6 +1,15 @@
 {
-  "version": 5,
+  "version": 7,
   "items": [
+    {
+      "title": "吊扇",
+      "category": "其他",
+      "price": 45,
+      "unit": "元/台",
+      "desc": "只使用了一年，八成新",
+      "contact": "13882591912",
+      "time": "刚刚"
+    },
     {
       "title": "吸顶喇叭",
       "category": "音响",
@@ -61,6 +70,6 @@
     "汽配"
   ],
   "_config": {
-    "admin_pwd": "admin123"
+    "admin_pwd": "wxf197212"
   }
 }
