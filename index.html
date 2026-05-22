@@ -673,71 +673,98 @@ body {
 <div class="toast" id="toast" style="display:none"></div>
 
 <script>
-// ==================== 数据（直接硬编码，不依赖网络请求） ====================
-var DATA = {"version":4,"items":[{"title":"吸顶喇叭","category":"音响","price":30,"unit":"元/个","desc":"惠威吸顶喇叭，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455623065_0.jpg","time":"刚刚"},{"title":"电脑显示屏","category":"数码","price":150,"unit":"元/台","desc":"21寸三星电脑显示屏，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455625423_1.jpg","time":"刚刚"},{"title":"汽车轮胎","category":"汽配","price":80,"unit":"元/只","desc":"原车拆件，保证正品，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415700989_0.jpg","time":"刚刚"},{"title":"惠威吸顶喇叭+先科功放","category":"音响","price":280,"unit":"元/套","desc":"惠威TD206吸顶喇叭（3只），正品，八成新，声音清脆，带先科SA-9006功放适合100平米的商铺，做背景音乐系统。","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415703243_1.jpg","time":"刚刚"},{"title":"拼接屏","category":"音响","price":1680,"unit":"元人民币/台","desc":"2X2 共四块屏，单屏48寸，七成新，画质清晰特别适合酒吧，KTV，会议室使用","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415704822_2.jpg","time":"今天"}],"categories":["全部","数码","家具","音响","其他","汽配"],"admin_pwd":"admin123"};
+var DATA={"version":4,"items":[{"title":"吸顶喇叭","category":"音响","price":30,"unit":"元/个","desc":"惠威吸顶喇叭，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455623065_0.jpg","time":"刚刚"},{"title":"电脑显示屏","category":"数码","price":150,"unit":"元/台","desc":"21寸三星电脑显示屏，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455625423_1.jpg","time":"刚刚"},{"title":"汽车轮胎","category":"汽配","price":80,"unit":"元/只","desc":"原车拆件，保证正品，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415700989_0.jpg","time":"刚刚"},{"title":"惠威吸顶喇叭+先科功放","category":"音响","price":280,"unit":"元/套","desc":"惠威TD206吸顶喇叭（3只），正品，八成新，声音清脆，带先科SA-9006功放适合100平米的商铺，做背景音乐系统。","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415703243_1.jpg","time":"刚刚"},{"title":"拼接屏","category":"音响","price":1680,"unit":"元人民币/台","desc":"2X2 共四块屏，单屏48寸，七成新，画质清晰特别适合酒吧，KTV，会议室使用","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415704822_2.jpg","time":"今天"}],"categories":["全部","数码","家具","音响","其他","汽配"],"admin_pwd":"admin123"};
 
-var currentCat = "全部";
-var items = DATA.items;
+var currentCat="全部", items=DATA.items, isAdmin=false;
 
-// ==================== 渲染商品列表 ====================
-function renderList() {
-  var s = (document.getElementById("searchInput")||{}).value||"";
-  var filtered = items;
-  if (currentCat !== "全部") filtered = items.filter(function(i){return i.category===currentCat;});
-  if (s) { s = s.toLowerCase(); filtered = filtered.filter(function(i){return i.title.toLowerCase().indexOf(s)>=0;}); }
+function renderList(){
+  var s=(document.getElementById("searchInput")||{}).value||"";
+  var f=items;
+  if(currentCat!=="全部") f=items.filter(function(i){return i.category===currentCat});
+  if(s){s=s.toLowerCase();f=f.filter(function(i){return i.title.toLowerCase().indexOf(s)>=0})}
+  var g=document.getElementById("grid");
+  if(!g) return;
+  if(f.length===0){g.innerHTML='<div class="empty-state"><div class="icon">📭</div><h3>暂无商品</h3></div>';return}
+  var cc=["#FFE0B2,#FFCC80","#FFCDD2,#EF9A9A","#C8E6C9,#A5D6A7","#BBDEFB,#90CAF9","#E1BEE7,#CE93D8","#FFE082,#FFD54F"];
+  g.innerHTML=f.map(function(item,idx){
+    var bg=cc[idx%cc.length];
+    var im=item.image?'<img src="'+item.image+'" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">':'';
+    return '<div class="card" onclick="showDetail('+idx+')"><div class="card-img" style="background:linear-gradient(135deg,'+bg+')">'+im+'<div class="card-category">'+item.category+'</div></div><div class="card-body"><div class="card-title">'+item.title+'</div><div class="card-price">¥'+item.price+'<span class="unit">'+(item.unit||"")+'</span></div><div class="card-desc">'+(item.desc||"")+'</div><div class="card-footer"><span>'+item.contact+'</span></div></div></div>';
+  }).join("")
+}
 
-  var grid = document.getElementById("grid");
-  if (!grid) return;
-  if (filtered.length === 0) {
-    grid.innerHTML = '<div class="empty-state"><div class="icon">📭</div><h3>暂时没有商品</h3></div>';
-    return;
+function renderCatBar(){
+  var b=document.getElementById("catBar");
+  if(!b) return;
+  b.innerHTML=DATA.categories.map(function(c){return '<button class="cat-btn'+(c===currentCat?" active":"")+'" onclick="selectCat(\''+c+'\')">'+c+'</button>'}).join("");
+  if(isAdmin){
+    b.innerHTML+='<span class="cat-add-wrap"><input class="cat-add-input" id="newCatInput" placeholder="新分类"><button class="cat-add-btn" onclick="addCat()">+添加</button></span>';
   }
-  grid.innerHTML = filtered.map(function(item, idx){
-    return '<div class="card" onclick="showDetail('+idx+')"><div class="card-img" style="background:linear-gradient(135deg,#FFE0B2,#FFCC80)"><div class="card-price">¥'+item.price+(item.unit?' <small>'+item.unit+'</small>':'')+'</div></div><div class="card-body"><span class="card-cat" style="background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:8px">'+item.category+'</span><h3>'+item.title+'</h3><p class="card-desc">'+(item.desc||"")+'</p></div></div>';
-  }).join("");
 }
 
-// ==================== 渲染分类栏 ====================
-function renderCatBar() {
-  var bar = document.getElementById("catBar");
-  if (!bar) return;
-  bar.innerHTML = DATA.categories.map(function(c){
-    return '<button class="cat-btn'+(c===currentCat?" active":"")+'" onclick="selectCat(\''+c+'\')">'+c+'</button>';
-  }).join("") + '<span class="cat-add-wrap"><input class="cat-add-input" id="newCatInput" placeholder="新分类"><button class="cat-add-btn" onclick="addCat()">+添加</button></span>';
-}
-
-function selectCat(c) {
-  currentCat = c;
-  renderCatBar();
-  renderList();
-}
-
-function addCat() {
-  var inp = document.getElementById("newCatInput");
-  var name = (inp.value||"").trim();
-  if (!name || DATA.categories.indexOf(name)>=0) return;
-  DATA.categories.push(name);
-  inp.value = "";
-  renderCatBar();
-}
+function selectCat(c){currentCat=c;renderCatBar();renderList()}
+function addCat(){var i=document.getElementById("newCatInput");var n=(i.value||"").trim();if(!n||DATA.categories.indexOf(n)>=0)return;DATA.categories.push(n);i.value="";renderCatBar()}
 
 function showDetail(idx){
-  var item = items[idx];
+  var item=items[idx];
   if(!item) return;
-  document.getElementById("detailBody").innerHTML = '<p><b>标题：</b>'+item.title+'</p><p><b>分类：</b>'+item.category+'</p><p><b>价格：</b>¥'+item.price+' '+(item.unit||"")+'</p><p><b>描述：</b>'+(item.desc||"无")+'</p><p><b>联系：</b>'+(item.contact||"")+'</p>'+(item.image?'<img src="'+item.image+'" style="max-width:100%;border-radius:8px;margin-top:10px">':"");
-  document.getElementById("detailModal").style.display = "flex";
+  var di=document.getElementById("detailBody");
+  di.innerHTML=(item.image?'<div class="detail-img"><img src="'+item.image+'"></div>':'<div class="detail-img" style="background:linear-gradient(135deg,#FFE0B2,#FFCC80);font-size:80px">📦</div>')+
+    '<h2>'+item.title+'</h2><div class="detail-price">¥'+item.price+' '+(item.unit||"")+'</div>'+
+    '<div class="detail-meta"><span>📂 '+item.category+'</span><span>🕐 '+item.time+'</span></div>'+
+    '<div class="detail-desc">'+(item.desc||"暂无描述")+'</div>'+
+    '<div class="detail-contact"><div class="label">联系方式</div><div class="info">'+(item.contact||"")+'</div></div>';
+  document.getElementById("detailModal").style.display="flex";
 }
-function closeDetail(){ document.getElementById("detailModal").style.display = "none"; }
+function closeDetail(){document.getElementById("detailModal").style.display="none"}
 
-// ==================== 搜索 ====================
-document.addEventListener("DOMContentLoaded", function(){
-  var inp = document.getElementById("searchInput");
-  if (inp) inp.addEventListener("input", renderList);
-});
+function openPublish(){
+  var sel=document.getElementById("formCategory");
+  sel.innerHTML='<option value="">请选择分类</option>'+DATA.categories.filter(function(c){return c!=="全部"}).map(function(c){return'<option value="'+c+'">'+c+'</option>'}).join("");
+  document.getElementById("addModal").style.display="flex";
+}
+function closePublish(){document.getElementById("addForm").reset();document.getElementById("addModal").style.display="none"}
+function submitItem(e){
+  e.preventDefault();
+  var f=document.getElementById("addForm");
+  var t=f.formTitle.value.trim(),c=f.formCategory.value,p=parseFloat(f.formPrice.value),u=f.formUnit.value.trim(),d=f.formDesc.value.trim(),ct=f.formContact.value.trim();
+  if(!t||!c||isNaN(p)||!ct){alert("请填写所有必填项");return}
+  DATA.items.unshift({title:t,category:c,price:p,unit:u||"元",desc:d,contact:ct,time:"刚刚"});
+  items=DATA.items; closePublish(); renderCatBar(); renderList();
+}
 
-// ==================== 立即渲染 ====================
-renderCatBar();
-renderList();
+function toggleAdmin(){
+  if(isAdmin){isAdmin=false;renderCatBar();return}
+  var pw=prompt("请输入管理密码：");
+  if(pw===DATA.admin_pwd){isAdmin=true;renderCatBar();alert("已进入管理模式")}
+  else if(pw!==null) alert("密码错误");
+}
+
+function openShare(){
+  document.getElementById("shareLink").value=window.location.href;
+  document.getElementById("shareModal").style.display="flex";
+}
+function closeShare(){document.getElementById("shareModal").style.display="none"}
+function copyShareLink(){
+  var i=document.getElementById("shareLink");i.select();
+  try{navigator.clipboard.writeText(i.value)}catch(e){document.execCommand("copy")}
+  alert("链接已复制！");
+}
+
+function openPwdModal(){if(!isAdmin){alert("请先进入管理模式");return}document.getElementById("pwdModal").style.display="flex"}
+function closePwdModal(){document.getElementById("pwdForm").reset();document.getElementById("pwdModal").style.display="none"}
+function changePwd(e){
+  e.preventDefault();
+  var o=document.getElementById("oldPwd").value,n=document.getElementById("newPwd").value.trim(),c=document.getElementById("confirmPwd").value.trim();
+  if(o!==DATA.admin_pwd){alert("当前密码错误");return}
+  if(n.length<4){alert("新密码至少4位");return}
+  if(n!==c){alert("两次密码不一致");return}
+  DATA.admin_pwd=n;closePwdModal();alert("密码已修改");
+}
+
+function resetAll(){currentCat="全部";renderCatBar();renderList()}
+
+renderCatBar();renderList();
 </script>
 </body>
 </html>
