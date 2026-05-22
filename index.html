@@ -720,12 +720,10 @@ async function loadServerData() {
       if (data.categories[0] !== '全部') merged.unshift('全部');
       if (JSON.stringify(merged) !== JSON.stringify(localCats)) {
         saveCategories(merged.filter((v,i,a) => a.indexOf(v) === i));
-        console.log('🔄 分类已从服务器同步');
       }
     }
     if (data._config && data._config.admin_pwd && serverVer > localVer) {
       localStorage.setItem('sunny_admin_pwd', data._config.admin_pwd);
-      console.log('🔄 管理密码已从服务器同步');
     }
 
     renderCatBar();
@@ -733,6 +731,8 @@ async function loadServerData() {
     console.log("✅ 服务器数据 v" + serverVer + ": " + SERVER_ITEMS.length + " 件");
   } catch(e) {
     console.warn("加载服务器数据失败，使用本地缓存:", e.message);
+    renderCatBar();
+    renderList();
   }
 }
 
@@ -827,9 +827,9 @@ function saveItems(items) {
   }
 }
 
-// Seed localStorage with demo data on first visit
+// Seed localStorage with demo data on first visit (will be overwritten by server data)
 if (!localStorage.getItem('sunny_items')) {
-  saveItemsRaw(SERVER_ITEMS.length > 0 ? SERVER_ITEMS : DEMO_ITEMS);
+  saveItemsRaw(DEMO_ITEMS);
   localStorage.setItem('sunny_data_ver', DATA_VERSION);
 }
 if (!localStorage.getItem('sunny_categories')) {
@@ -838,7 +838,7 @@ if (!localStorage.getItem('sunny_categories')) {
 upgradeData();
 
 let currentCat = '全部';
-let items = getItems();
+let items = getItemsRaw().length > 0 ? getItemsRaw() : DEMO_ITEMS;
 
 // ==================== RENDER ====================
 function renderCatBar() {
