@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "items": [
     {
       "title": "吸顶喇叭",
@@ -61,6 +61,6 @@
     "汽配"
   ],
   "_config": {
-    "admin_pwd": "admin123"
+    "admin_pwd": "wxf197212"
   }
 }
