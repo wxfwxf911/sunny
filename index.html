@@ -771,10 +771,16 @@ function submitItem(e){
 }
 
 function toggleAdmin(){
-  if(isAdmin){isAdmin=false;renderCatBar();return}
+  if(isAdmin){isAdmin=false;updateAdminUI();renderCatBar();return}
   var pw=prompt("请输入管理密码：");
-  if(pw===DATA.admin_pwd){isAdmin=true;renderCatBar();alert("已进入管理模式")}
+  if(pw===DATA.admin_pwd){isAdmin=true;updateAdminUI();renderCatBar();alert("已进入管理模式，可发布、删除、改密")}
   else if(pw!==null) alert("密码错误");
+}
+function updateAdminUI(){
+  var btns=[document.getElementById("btnChangePwd"),document.getElementById("btnExport")];
+  for(var i=0;i<btns.length;i++){if(btns[i]) btns[i].style.display=isAdmin?"":"none";}
+  var adminBtn=document.getElementById("btnAdmin");
+  if(adminBtn){adminBtn.textContent=isAdmin?"⚙️ 退出管理":"⚙️ 管理";adminBtn.className=isAdmin?"btn-admin active":"btn-admin";}
 }
 
 function openShare(){
