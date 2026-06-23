@@ -775,7 +775,7 @@ function loadFromServer(){
       DATA.items=d.items;
       items=DATA.items;
       if(d.categories&&d.categories.length>0) DATA.categories=d.categories;
-      if(d._config&&d._config.admin_pwd) DATA.admin_pwd=d._config.admin_pwd;
+      if(d._config&&d._config.admin_pwd){DATA.admin_pwd=d._config.admin_pwd;migratePwd();}
       renderCatBar();renderList();
       console.log("✅ 服务器数据已同步 v"+sv);
     }
