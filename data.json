@@ -1,5 +1,5 @@
 {
-  "version": 14,
+  "version": 15,
   "items": [
     {
       "title": "吊扇",
@@ -71,6 +71,6 @@
     "汽配"
   ],
   "_config": {
-    "admin_pwd": "wxf197212"
+    "admin_pwd": "7f2f89a5828dff7a8146f1bea7281108ec180119b0dd6007f35de8b9080657f8"
   }
 }
