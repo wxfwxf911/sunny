@@ -854,8 +854,16 @@ function toggleAdmin(){
   var pw=prompt("请输入管理密码：");
   if(pw===null||pw===""){return}
   sha256(pw).then(function(hash){
-    if(hash===DATA.admin_pwd){isAdmin=true;updateAdminUI();renderCatBar();showToast("已进入管理模式")}
-    else{showToast("密码错误")}
+    // 兼容迁移期：同时比对哈希和明文
+    if(hash===DATA.admin_pwd || pw===DATA.admin_pwd){
+      // 明文匹配 → 自动升级为哈希存储
+      if(pw===DATA.admin_pwd && DATA.admin_pwd.length!==64){
+        DATA.admin_pwd=hash;saveLocal();console.log("🔐 密码已自动升级为哈希");
+      }
+      isAdmin=true;updateAdminUI();renderCatBar();showToast("已进入管理模式");
+    }else{
+      showToast("密码错误");
+    }
   });
 }
 function updateAdminUI(){
@@ -884,7 +892,8 @@ function changePwd(e){
   if(n.length<CONFIG.MIN_PWD_LENGTH){alert("新密码至少"+CONFIG.MIN_PWD_LENGTH+"位");return}
   if(n!==c){alert("两次密码不一致");return}
   sha256(o).then(function(oldHash){
-    if(oldHash!==DATA.admin_pwd){alert("当前密码错误");return}
+    // 兼容迁移期：同时比对哈希和明文
+    if(oldHash!==DATA.admin_pwd && o!==DATA.admin_pwd){alert("当前密码错误");return}
     sha256(n).then(function(newHash){
       DATA.admin_pwd=newHash;closePwdModal();alert("密码已修改");syncToGitHub("🔑 修改管理密码");
     });
