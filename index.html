@@ -701,6 +701,19 @@ function escapeHtml(str) {
 }
 
 // ═══════════════════════════════════════
+// 商品独立链接（分享用）
+// ═══════════════════════════════════════
+function getProductUrl(idx) {
+  var base = window.location.origin + window.location.pathname;
+  return base + "?p=" + idx;
+}
+function copyProductLink(idx) {
+  var url = getProductUrl(idx);
+  try { navigator.clipboard.writeText(url); } catch(e) { /* fallback below */ }
+  showToast("🔗 商品链接已复制，可直接发给朋友！");
+}
+
+// ═══════════════════════════════════════
 // 密码哈希（SHA-256 via Web Crypto）
 // ═══════════════════════════════════════
 function sha256(str) {
@@ -767,7 +780,7 @@ function syncToGitHub(msg){
 }
 
 function loadFromServer(){
-  fetch("data.json?t="+Date.now())
+  return fetch("data.json?t="+Date.now())
   .then(function(r){return r.json()})
   .then(function(d){
     var sv=d.version||0;
@@ -815,15 +828,24 @@ function addCat(){var i=document.getElementById("newCatInput");var n=(i.value||"
 function showDetail(idx){
   var item=items[idx];
   if(!item) return;
+  // 更新浏览器地址栏（不刷新页面）
+  var url=getProductUrl(idx);
+  if(window.history&&window.history.pushState){window.history.pushState({p:idx},"",url)}
   var di=document.getElementById("detailBody");
   di.innerHTML=(item.image?'<div class="detail-img"><img src="'+escapeHtml(item.image)+'" onerror="this.style.display=\'none\';this.parentElement.textContent=\'📦\'"></div>':'<div class="detail-img" style="background:linear-gradient(135deg,#FFE0B2,#FFCC80);font-size:80px">📦</div>')+
     '<h2>'+escapeHtml(item.title)+'</h2><div class="detail-price">¥'+item.price+' '+escapeHtml(item.unit||"")+'</div>'+
     '<div class="detail-meta"><span>📂 '+escapeHtml(item.category)+'</span><span>🕐 '+escapeHtml(item.time)+'</span></div>'+
     '<div class="detail-desc">'+escapeHtml(item.desc||"暂无描述")+'</div>'+
-    '<div class="detail-contact"><div class="label">联系方式</div><div class="info">'+escapeHtml(item.contact||"")+'</div></div>';
+    '<div class="detail-contact"><div class="label">联系方式</div><div class="info">'+escapeHtml(item.contact||"")+'</div></div>'+
+    '<div style="margin-top:12px;text-align:center"><button onclick="copyProductLink('+idx+')" style="padding:10px 24px;background:#fff;border:2px solid #e8ddd0;border-radius:50px;font-size:14px;font-weight:600;color:var(--text-light);cursor:pointer">📋 复制商品链接，分享给朋友</button></div>';
   document.getElementById("detailModal").style.display="flex";
 }
-function closeDetail(){document.getElementById("detailModal").style.display="none"}
+function closeDetail(){
+  document.getElementById("detailModal").style.display="none";
+  // 清除 URL 参数，回到首页
+  var base=window.location.origin+window.location.pathname;
+  if(window.history&&window.history.pushState){window.history.pushState({},"",base)}
+}
 
 function openPublish(){
   var sel=document.getElementById("formCategory");
@@ -924,7 +946,24 @@ function editItem(idx){
 }
 
 renderCatBar();renderList();
-loadFromServer();setInterval(function(){loadFromServer()},CONFIG.SYNC_INTERVAL);
+
+// 如果 URL 带 ?p= 参数，数据加载后自动打开对应商品
+function openFromUrl(){
+  var m=window.location.search.match(/[?&]p=(\d+)/);
+  if(!m) return;
+  var idx=parseInt(m[1]);
+  if(idx>=0&&idx<items.length){showDetail(idx)}
+}
+loadFromServer().then(function(){openFromUrl()});  // 等服务器数据加载完再打开
+setInterval(function(){loadFromServer()},CONFIG.SYNC_INTERVAL);
+// 服务器数据可能还在加载中，先用本地数据尝试打开
+setTimeout(function(){openFromUrl()},200);
+
+// 浏览器前进/后退时响应
+window.addEventListener("popstate",function(e){
+  if(e.state&&typeof e.state.p==="number"){showDetail(e.state.p)}
+  else{closeDetail()}
+});
 
 // 搜索防抖
 var searchTimer = null;
