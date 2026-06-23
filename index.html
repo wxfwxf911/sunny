@@ -22,6 +22,9 @@
 <meta name="twitter:title" content="☀️ 阳光二手集市 — 让闲置焕发新生">
 <meta name="twitter:description" content="免费便捷的二手物品交易平台。发布闲置、分类浏览、在线搜索。">
 
+<!-- Security -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.github.com https://api.qrserver.com;">
+
 <!-- Favicon -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☀️</text></svg>">
 <style>
@@ -672,16 +675,73 @@ body {
 <div class="toast" id="toast" style="display:none"></div>
 
 <script>
-var DATA={"version":4,"items":[{"title":"吸顶喇叭","category":"音响","price":30,"unit":"元/个","desc":"惠威吸顶喇叭，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455623065_0.jpg","time":"刚刚"},{"title":"电脑显示屏","category":"数码","price":150,"unit":"元/台","desc":"21寸三星电脑显示屏，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455625423_1.jpg","time":"刚刚"},{"title":"汽车轮胎","category":"汽配","price":80,"unit":"元/只","desc":"原车拆件，保证正品，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415700989_0.jpg","time":"刚刚"},{"title":"惠威吸顶喇叭+先科功放","category":"音响","price":280,"unit":"元/套","desc":"惠威TD206吸顶喇叭（3只），正品，八成新，声音清脆，带先科SA-9006功放适合100平米的商铺，做背景音乐系统。","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415703243_1.jpg","time":"刚刚"},{"title":"拼接屏","category":"音响","price":1680,"unit":"元人民币/台","desc":"2X2 共四块屏，单屏48寸，七成新，画质清晰特别适合酒吧，KTV，会议室使用","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415704822_2.jpg","time":"今天"}],"categories":["全部","数码","家具","音响","其他","汽配"],"admin_pwd":"admin123"};
+"use strict";
+
+// ═══════════════════════════════════════
+// 配置常量（改这里影响全局）
+// ═══════════════════════════════════════
+var CONFIG = {
+  SYNC_INTERVAL: 30000,      // 自动同步间隔（毫秒）
+  MAX_DESC_LENGTH: 500,      // 描述最大字数
+  MIN_PWD_LENGTH: 4,         // 密码最小长度
+  MAX_PRICE: 9999999,        // 最大价格
+  SEARCH_DEBOUNCE: 250       // 搜索输入防抖（毫秒）
+};
+
+// ═══════════════════════════════════════
+// XSS 防护：HTML 转义
+// ═══════════════════════════════════════
+// JS 字符串转义（用于 onclick 等属性）
+function escapeJs(s) { return s.replace(/\\/g, "\\\\").replace(/'/g, "\\'"); }
+
+function escapeHtml(str) {
+  var div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ═══════════════════════════════════════
+// 密码哈希（SHA-256 via Web Crypto）
+// ═══════════════════════════════════════
+function sha256(str) {
+  var encoder = new TextEncoder();
+  var data = encoder.encode(str);
+  return crypto.subtle.digest("SHA-256", data).then(function (hash) {
+    return Array.from(new Uint8Array(hash))
+      .map(function (b) { return b.toString(16).padStart(2, "0"); })
+      .join("");
+  });
+}
+
+// ═══════════════════════════════════════
+// Toast 通知（替代 alert）
+// ═══════════════════════════════════════
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  if (!t) return;
+  t.textContent = msg;
+  t.style.display = "block";
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(function () {
+    t.style.display = "none";
+  }, 2000);
+}
+
+var DATA={"version":4,"items":[{"title":"吸顶喇叭","category":"音响","price":30,"unit":"元/个","desc":"惠威吸顶喇叭，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455623065_0.jpg","time":"刚刚"},{"title":"电脑显示屏","category":"数码","price":150,"unit":"元/台","desc":"21寸三星电脑显示屏，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779455625423_1.jpg","time":"刚刚"},{"title":"汽车轮胎","category":"汽配","price":80,"unit":"元/只","desc":"原车拆件，保证正品，八成新","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415700989_0.jpg","time":"刚刚"},{"title":"惠威吸顶喇叭+先科功放","category":"音响","price":280,"unit":"元/套","desc":"惠威TD206吸顶喇叭（3只），正品，八成新，声音清脆，带先科SA-9006功放适合100平米的商铺，做背景音乐系统。","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415703243_1.jpg","time":"刚刚"},{"title":"拼接屏","category":"音响","price":1680,"unit":"元人民币/台","desc":"2X2 共四块屏，单屏48寸，七成新，画质清晰特别适合酒吧，KTV，会议室使用","contact":"13882591912","image":"https://wxfwxf911.github.io/sunny/images/img_1779415704822_2.jpg","time":"今天"}],"categories":["全部","数码","家具","音响","其他","汽配"],"admin_pwd":"240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"};
+
+// 密码迁移：如果 admin_pwd 不是 64 位 hex（SHA-256），自动转为哈希
+function migratePwd(){if(DATA.admin_pwd&&DATA.admin_pwd.length!==64){sha256(DATA.admin_pwd).then(function(h){DATA.admin_pwd=h;saveLocal();console.log("🔐 密码已自动哈希")})}}
+migratePwd();
 
 // 从 localStorage 恢复上次未同步的数据（防止刷新丢失）
 (function(){
-  try{var b=JSON.parse(localStorage.getItem("sunny_bak"));if(b&&b.version&&b.items&&b.items.length>DATA.items.length){DATA=b}}catch(e){}
+  try{var b=JSON.parse(localStorage.getItem("sunny_bak"));if(b&&b.version&&b.items&&b.items.length>DATA.items.length){DATA=b;migratePwd()} }catch(e){}
 })();
 
 var currentCat="全部", items=DATA.items, isAdmin=false, uploadedImage="", editingIdx=-1;
 
 // ==================== GitHub 同步 ====================
+// ⚠️ 安全提示：Token 仅在客户端混淆，F12 可逆向。生产环境建议用 Serverless Function (Cloudflare Workers / Vercel) 代理 API 请求。
 var _tk=[20,29,30,49,42,21,49,4,93,11,42,45,56,33,17,31,69,0,94,9,26,56,54,89,42,67,71,28,9,61,20,37,29,2,72,22,22,11,7,1];
 var GH=_tk.map(function(c,i){return String.fromCharCode(c^"sunny".charCodeAt(i%5))}).join("");
 
@@ -733,16 +793,16 @@ function renderList(){
   var cc=["#FFE0B2,#FFCC80","#FFCDD2,#EF9A9A","#C8E6C9,#A5D6A7","#BBDEFB,#90CAF9","#E1BEE7,#CE93D8","#FFE082,#FFD54F"];
   g.innerHTML=f.map(function(item,idx){
     var bg=cc[idx%cc.length];
-    var im=item.image?'<img src="'+item.image+'" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">':'';
+    var im=item.image?'<img src="'+escapeHtml(item.image)+'" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0" onerror="this.style.display=\'none\';var p=this.parentElement.querySelector(\'.placeholder\');if(p)p.style.display=\'flex\'" loading="lazy">':'<div class="placeholder" style="font-size:48px">📦</div>';
     var delBtn=isAdmin?'<div class="card-actions" style="display:flex;position:absolute;top:8px;left:8px;z-index:2;gap:6px"><button onclick="event.stopPropagation();editItem('+idx+')" style="width:28px;height:28px;border-radius:50%;border:none;background:#2196F3;color:#fff;font-size:14px;cursor:pointer" title="编辑">✎</button><button onclick="event.stopPropagation();delItem('+idx+')" style="width:28px;height:28px;border-radius:50%;border:none;background:#f44336;color:#fff;font-size:14px;cursor:pointer" title="删除">✕</button></div>':'';
-    return '<div class="card" onclick="showDetail('+idx+')"><div class="card-img" style="background:linear-gradient(135deg,'+bg+')">'+delBtn+im+'<div class="card-category">'+item.category+'</div></div><div class="card-body"><div class="card-title">'+item.title+'</div><div class="card-price">¥'+item.price+'<span class="unit">'+(item.unit||"")+'</span></div><div class="card-desc">'+(item.desc||"")+'</div><div class="card-footer"><span>'+item.contact+'</span></div></div></div>';
+    return '<div class="card" onclick="showDetail('+idx+')"><div class="card-img" style="background:linear-gradient(135deg,'+bg+')">'+delBtn+im+'<div class="card-category">'+escapeHtml(item.category)+'</div></div><div class="card-body"><div class="card-title">'+escapeHtml(item.title)+'</div><div class="card-price">¥'+item.price+'<span class="unit">'+escapeHtml(item.unit||"")+'</span></div><div class="card-desc">'+escapeHtml(item.desc||"")+'</div><div class="card-footer"><span>'+escapeHtml(item.contact)+'</span></div></div></div>';
   }).join("")
 }
 
 function renderCatBar(){
   var b=document.getElementById("catBar");
   if(!b) return;
-  b.innerHTML=DATA.categories.map(function(c){return '<button class="cat-btn'+(c===currentCat?" active":"")+'" onclick="selectCat(\''+c+'\')">'+c+'</button>'}).join("");
+  b.innerHTML=DATA.categories.map(function(c){return '<button class="cat-btn'+(c===currentCat?" active":"")+'" onclick="selectCat(\''+escapeJs(c)+'\')">'+escapeHtml(c)+'</button>'}).join("");
   if(isAdmin){
     b.innerHTML+='<span class="cat-add-wrap"><input class="cat-add-input" id="newCatInput" placeholder="新分类"><button class="cat-add-btn" onclick="addCat()">+添加</button></span>';
   }
@@ -755,18 +815,18 @@ function showDetail(idx){
   var item=items[idx];
   if(!item) return;
   var di=document.getElementById("detailBody");
-  di.innerHTML=(item.image?'<div class="detail-img"><img src="'+item.image+'"></div>':'<div class="detail-img" style="background:linear-gradient(135deg,#FFE0B2,#FFCC80);font-size:80px">📦</div>')+
-    '<h2>'+item.title+'</h2><div class="detail-price">¥'+item.price+' '+(item.unit||"")+'</div>'+
-    '<div class="detail-meta"><span>📂 '+item.category+'</span><span>🕐 '+item.time+'</span></div>'+
-    '<div class="detail-desc">'+(item.desc||"暂无描述")+'</div>'+
-    '<div class="detail-contact"><div class="label">联系方式</div><div class="info">'+(item.contact||"")+'</div></div>';
+  di.innerHTML=(item.image?'<div class="detail-img"><img src="'+escapeHtml(item.image)+'" onerror="this.style.display=\'none\';this.parentElement.textContent=\'📦\'"></div>':'<div class="detail-img" style="background:linear-gradient(135deg,#FFE0B2,#FFCC80);font-size:80px">📦</div>')+
+    '<h2>'+escapeHtml(item.title)+'</h2><div class="detail-price">¥'+item.price+' '+escapeHtml(item.unit||"")+'</div>'+
+    '<div class="detail-meta"><span>📂 '+escapeHtml(item.category)+'</span><span>🕐 '+escapeHtml(item.time)+'</span></div>'+
+    '<div class="detail-desc">'+escapeHtml(item.desc||"暂无描述")+'</div>'+
+    '<div class="detail-contact"><div class="label">联系方式</div><div class="info">'+escapeHtml(item.contact||"")+'</div></div>';
   document.getElementById("detailModal").style.display="flex";
 }
 function closeDetail(){document.getElementById("detailModal").style.display="none"}
 
 function openPublish(){
   var sel=document.getElementById("formCategory");
-  sel.innerHTML='<option value="">请选择分类</option>'+DATA.categories.filter(function(c){return c!=="全部"}).map(function(c){return'<option value="'+c+'">'+c+'</option>'}).join("");
+  sel.innerHTML='<option value="">请选择分类</option>'+DATA.categories.filter(function(c){return c!=="全部"}).map(function(c){return'<option value="'+escapeJs(c)+'">'+escapeHtml(c)+'</option>'}).join("");
   editingIdx=-1; uploadedImage="";
   document.getElementById("uploadPreviewWrap").style.display="none";
   document.getElementById("addModal").style.display="flex";
@@ -776,7 +836,7 @@ function submitItem(e){
   e.preventDefault();
   var f=document.getElementById("addForm");
   var t=f.formTitle.value.trim(),c=f.formCategory.value,p=parseFloat(f.formPrice.value),u=f.formUnit.value.trim(),d=f.formDesc.value.trim(),ct=f.formContact.value.trim();
-  if(!t||!c||isNaN(p)||!ct){alert("请填写所有必填项");return}
+  if(!t||!c||isNaN(p)||p<0||p>CONFIG.MAX_PRICE||!ct){showToast("请填写所有必填项");return}
   var img=uploadedImage||"";
   if(editingIdx>=0){
     var old=DATA.items[editingIdx];
@@ -790,10 +850,13 @@ function submitItem(e){
 }
 
 function toggleAdmin(){
-  if(isAdmin){isAdmin=false;updateAdminUI();renderCatBar();return}
+  if(isAdmin){isAdmin=false;updateAdminUI();renderCatBar();showToast("已退出管理模式");return}
   var pw=prompt("请输入管理密码：");
-  if(pw===DATA.admin_pwd){isAdmin=true;updateAdminUI();renderCatBar();alert("已进入管理模式，可发布、删除、改密")}
-  else if(pw!==null) alert("密码错误");
+  if(pw===null||pw===""){return}
+  sha256(pw).then(function(hash){
+    if(hash===DATA.admin_pwd){isAdmin=true;updateAdminUI();renderCatBar();showToast("已进入管理模式")}
+    else{showToast("密码错误")}
+  });
 }
 function updateAdminUI(){
   var btns=[document.getElementById("btnChangePwd"),document.getElementById("btnExport")];
@@ -810,18 +873,22 @@ function closeShare(){document.getElementById("shareModal").style.display="none"
 function copyShareLink(){
   var i=document.getElementById("shareLink");i.select();
   try{navigator.clipboard.writeText(i.value)}catch(e){document.execCommand("copy")}
-  alert("链接已复制！");
+  showToast("链接已复制！");
 }
 
-function openPwdModal(){if(!isAdmin){alert("请先进入管理模式");return}document.getElementById("pwdModal").style.display="flex"}
+function openPwdModal(){if(!isAdmin){showToast("请先进入管理模式");return}document.getElementById("pwdModal").style.display="flex"}
 function closePwdModal(){document.getElementById("pwdForm").reset();document.getElementById("pwdModal").style.display="none"}
 function changePwd(e){
   e.preventDefault();
   var o=document.getElementById("oldPwd").value,n=document.getElementById("newPwd").value.trim(),c=document.getElementById("confirmPwd").value.trim();
-  if(o!==DATA.admin_pwd){alert("当前密码错误");return}
-  if(n.length<4){alert("新密码至少4位");return}
+  if(n.length<CONFIG.MIN_PWD_LENGTH){alert("新密码至少"+CONFIG.MIN_PWD_LENGTH+"位");return}
   if(n!==c){alert("两次密码不一致");return}
-  DATA.admin_pwd=n;closePwdModal();alert("密码已修改");syncToGitHub("🔑 修改管理密码")
+  sha256(o).then(function(oldHash){
+    if(oldHash!==DATA.admin_pwd){alert("当前密码错误");return}
+    sha256(n).then(function(newHash){
+      DATA.admin_pwd=newHash;closePwdModal();alert("密码已修改");syncToGitHub("🔑 修改管理密码");
+    });
+  });
 }
 
 function resetAll(){currentCat="全部";renderCatBar();renderList()}
@@ -847,7 +914,14 @@ function editItem(idx){
 }
 
 renderCatBar();renderList();
-loadFromServer();setInterval(function(){loadFromServer()},15000);
+loadFromServer();setInterval(function(){loadFromServer()},CONFIG.SYNC_INTERVAL);
+
+// 搜索防抖
+var searchTimer = null;
+document.getElementById("searchInput").addEventListener("input", function () {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(renderList, CONFIG.SEARCH_DEBOUNCE);
+});
 
 // ==================== HTML onclick 别名 ====================
 var openAddModal=openPublish, closeAddModal=closePublish;
@@ -855,7 +929,7 @@ var openChangePwdModal=openPwdModal, openShareModal=openShare, closeShareModal=c
 var changePassword=changePwd;
 var exportUserItems=function(){var j=JSON.stringify(DATA,null,2);var b=new Blob([j],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="sunny_backup.json";a.click();URL.revokeObjectURL(a.href)};
 var manualSync=function(){syncToGitHub("🔄 手动同步").then(function(ok){if(ok){alert("✅ 同步成功，页面将刷新");location.reload()}else{alert("❌ 同步失败，请检查网络后重试")}})};
-var setupToken=function(){alert("GitHub Token 已内置，无需手动设置 ✅")};
+var setupToken=function(){showToast("GitHub Token 已内置 ✅")};
 var removeImage=function(){var p=document.getElementById("uploadPreviewWrap");if(p)p.style.display="none";uploadedImage=""};
 var previewImage=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){uploadedImage=ev.target.result;var p=document.getElementById("uploadPreviewWrap");var im=document.getElementById("uploadPreview");if(p&&im){im.src=uploadedImage;p.style.display="block"}};r.readAsDataURL(f)};
 </script>
