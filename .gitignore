@@ -1,0 +1,12 @@
+# 运行时数据（含 SQLite 数据库、管理员密码 hash）
+data/
+uploads/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# 敏感旧数据（已迁移到 SQLite，不再入库）
+data.json
